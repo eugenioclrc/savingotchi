@@ -9,8 +9,9 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
 import "./SavingotchiStates.sol";
+import "./SavingotchiVaultManager.sol";
 
-contract Savingotchi is SavingotchiState, ERC721, ERC721URIStorage, ERC721Burnable, Ownable {
+contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC721URIStorage, ERC721Burnable, Ownable {
     using Counters for Counters.Counter;
 
     uint256 public totalSupply;
@@ -18,11 +19,10 @@ contract Savingotchi is SavingotchiState, ERC721, ERC721URIStorage, ERC721Burnab
     uint256 public BASE_PRICE = 1 ether;
     uint256 private _baseIncreasePrice = 0;
 
-    mapping(uint256 => uint256) public savingotchiValue;
-
     Counters.Counter private _tokenIdCounter;
 
-    constructor() ERC721("Savingotchi", "GMI") {}
+    constructor(address _vault) SavingotchiVaultManager(_vault) ERC721("Savingotchi", "GMI") {
+    }
 
     function getBuyPrice() public view returns(uint256) {
         uint256 dec = (block.timestamp - lastBuy) / (1 days);
@@ -33,7 +33,7 @@ contract Savingotchi is SavingotchiState, ERC721, ERC721URIStorage, ERC721Burnab
         return BASE_PRICE * (11500 ** (_baseIncreasePrice-dec)) / 10000;
     }
 
-    function mint(address to, string memory uri) public payable {
+    function mint(address to, string memory uri) /* todo nonRentrant */ public payable {
         require(totalSupply < 10000, "Too many Savingotchis");
         uint256 price = getBuyPrice();
         require(msg.value >= price, "Not enought matic");
@@ -54,12 +54,11 @@ contract Savingotchi is SavingotchiState, ERC721, ERC721URIStorage, ERC721Burnab
         _setTokenURI(tokenId, uri);
         totalSupply++;
         
-        savingotchiValue[tokenId] = price;
         lastEvolve[tokenId] = block.timestamp;
         savingotchiType[tokenId] = SavingotchiType.EGG;
 
-        // todo send price to aave
-    
+        createVault(tokenId);
+        
         if (msg.value > price) {
             Address.sendValue(payable(msg.sender), msg.value - price);
         }
@@ -70,7 +69,8 @@ contract Savingotchi is SavingotchiState, ERC721, ERC721URIStorage, ERC721Burnab
         require(stage(tokenId) == SavingotchiStage.ADULT, "Only adult Savingotchi can be released");
         super._burn(tokenId);
         
-        // TODO withdraw eanings from aave and transfer to owner
+        tokenVaults[tokenId].exit(ownerOf(tokenId));
+        delete tokenVaults[tokenId];
     }
 
     function evolve(uint256 tokenId)  external payable {
@@ -80,17 +80,24 @@ contract Savingotchi is SavingotchiState, ERC721, ERC721URIStorage, ERC721Burnab
         if (lastEvolve[tokenId] > (block.timestamp + 14 days)) {
             _evolve(tokenId);
         } else {
-            uint256 evolvePrice = savingotchiValue[tokenId] * 10 / 100;
-            require(msg.value >= evolvePrice, "Not enought matic");
-            // TODO this is not safe, must recalculate rewards for all users
-            savingotchiValue[tokenId] += evolvePrice;
-            
+            uint256 _evolvePrice = evolvePrice(tokenId);
+            require(msg.value >= _evolvePrice, "Not enought matic");
+            // comprar link para tirar el random
             _evolve(tokenId);
+            tokenVaults[tokenId].depositAAVE{value: msg.value}();
 
-            if (msg.value > evolvePrice) {
-                Address.sendValue(payable(msg.sender), msg.value - evolvePrice);
+            if (msg.value > _evolvePrice) {
+                Address.sendValue(payable(msg.sender), msg.value - _evolvePrice);
             }
         }
+    }
+
+    function evolvePrice(uint256 tokenId) public view returns(uint256) {
+        if(stage(tokenId) == SavingotchiStage.ADULT) {
+            return 0;
+        }
+        // conseguir valor de link y sumarle 0.1link (en matic) al valor de la evolucion
+        return gotchiValue(tokenId) * 10 / 100;
     }
 
     // The following functions are overrides required by Solidity.

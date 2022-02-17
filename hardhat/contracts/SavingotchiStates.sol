@@ -8,7 +8,7 @@ pragma solidity ^0.8.4;
       GREYMON
       TYRANOMON
       DARMKON
-      MEARAMON
+      MERAMON
     BETAMON
       // MERAMON
       AIRDRAMON
@@ -41,7 +41,7 @@ abstract contract SavingotchiState {
         GREYMON,
         TYRANOMON,
         DARMKON,
-        // MEARAMON,
+        // MERAMON,
       BETAMON,
         // MERAMON
         AIRDRAMON,
@@ -67,7 +67,55 @@ abstract contract SavingotchiState {
     return SavingotchiStage.ADULT;
   }
 
+  function getRandom() internal view returns (uint256) {
+    return uint256(keccak256(abi.encodePacked(block.timestamp)));
+  }
+
   function _evolve(uint256 tokenId) internal {
-    // TODO
+    require(stage(tokenId) != SavingotchiStage.ADULT, "Cannot evolve an adult Savingotchi");
+    uint256 rnd;
+    if (savingotchiType[tokenId] == SavingotchiType.EGG) {
+      savingotchiType[tokenId] = SavingotchiType.BOTAMON;
+    } else if(savingotchiType[tokenId] == SavingotchiType.BOTAMON) {
+      savingotchiType[tokenId] = SavingotchiType.KOROMON;
+    } else if(savingotchiType[tokenId] == SavingotchiType.KOROMON) {
+      rnd = getRandom();
+      if ((rnd % 2) == 0) {
+        savingotchiType[tokenId] = SavingotchiType.AGUMON;
+      } else {
+        savingotchiType[tokenId] = SavingotchiType.BETAMON;
+      }
+    } else if(savingotchiType[tokenId] == SavingotchiType.AGUMON) {
+      rnd = getRandom() % 4;
+      if (rnd == 0) {
+        savingotchiType[tokenId] = SavingotchiType.GREYMON;
+      } else if (rnd == 1) {
+        savingotchiType[tokenId] = SavingotchiType.TYRANOMON;
+      } else if (rnd == 2) {
+        savingotchiType[tokenId] = SavingotchiType.DARMKON;
+      } else {
+        savingotchiType[tokenId] = SavingotchiType.MERAMON;
+      }
+    } else if(savingotchiType[tokenId] == SavingotchiType.BETAMON) {
+      rnd = getRandom() % 4;
+      if (rnd == 0) {
+        savingotchiType[tokenId] = SavingotchiType.AIRDRAMON;
+      } else if (rnd == 1) {
+        savingotchiType[tokenId] = SavingotchiType.SEADRAMON;
+      } else if (rnd == 2) {
+        savingotchiType[tokenId] = SavingotchiType.NUMEMON;
+      } else {
+        savingotchiType[tokenId] = SavingotchiType.MERAMON;
+      }
+    } else {
+      rnd = getRandom() % 3;
+      if(rnd == 0) {
+        savingotchiType[tokenId] = SavingotchiType.METAL_GREYMON;
+      } else if(rnd == 1) {
+        savingotchiType[tokenId] = SavingotchiType.MAMEMON;
+      } else {
+        savingotchiType[tokenId] = SavingotchiType.TEDDYMON;
+      }
+    }
   }
 }

@@ -52,17 +52,21 @@ contract Vault is Ownable {
     return liquidityRate;
   }
 
-  function release(address releaser, uint256 nftTokenValue) external onlyOwner {
-    uint256 _releaseValue = (nftTokenValue * 90 / 100);
-    //Address.sendValue(payable(releaser), _releaseValue);
+  function exit(address _user) public onlyOwner {
+    uint256 _amount = aMATIC.balanceOf(address(this));
+    IAToken(aMATIC).approve(address(WETHGateway), _amount);
+    
+    // 0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889 WMATIC address
+    ILendingPool(seeLendingPool()).withdraw(
+        address(wMATIC),
+        _amount,
+        address(this)
+      );
 
-    //Take off that amount from AAVE and send to user
-    withdrawAAVE(releaser, _releaseValue);
+    wMATIC.withdraw(_amount);
+    Address.sendValue(payable(_user), _amount);
 
-    // No need to do extra transfer, withdrawAAVE now send wETH to user
-    // Now the release sends back wMATIC (For Now)
-    //require(wMATIC.balanceOf(address(this)) > _releaseValue, "Not enough wMATIC to release");
-    //wMATIC.transfer(releaser, _releaseValue);
+    // TODO selfdestruct y claim withdraws
   }
 
   function withdrawAAVE(address _user, uint _amount) public onlyOwner {
@@ -90,7 +94,7 @@ contract Vault is Ownable {
       );
   }
 
-  function depositAAVE() external payable {
+  function depositAAVE() public payable {
     WETHGateway.depositETH{value: msg.value }(
         seeLendingPool(),
         address(this),
@@ -116,17 +120,17 @@ contract Vault is Ownable {
       return ILendingPoolAddressesProvider(LendingPoolAddressesProviderAddress).getLendingPool();
   }
 
-  function aMATICbalance(address _addr) public view returns(uint256){
-      return aMATIC.balanceOf(_addr);
+  function aMATICbalance() public view returns(uint256){
+      return aMATIC.balanceOf(address(this));
   }
 
-  function wMATICbalance(address _addr) public view returns(uint256){
-      return wMATIC.balanceOf(_addr);
+  function wMATICbalance() public view returns(uint256){
+      return wMATIC.balanceOf(address(this));
   }
   function maticBalance(address _addr) public view returns(uint){
       return _addr.balance;
   }
   receive() external payable {
-    // depositAAVE();
+    depositAAVE();
   }
 }
