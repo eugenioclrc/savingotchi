@@ -13,6 +13,7 @@ import "./SavingotchiStates.sol";
 contract Savingotchi is SavingotchiState, ERC721, ERC721URIStorage, ERC721Burnable, Ownable {
     using Counters for Counters.Counter;
 
+    uint256 public totalSupply;
     uint256 public lastBuy;
     uint256 public BASE_PRICE = 1 ether;
     uint256 private _baseIncreasePrice = 0;
@@ -33,7 +34,7 @@ contract Savingotchi is SavingotchiState, ERC721, ERC721URIStorage, ERC721Burnab
     }
 
     function mint(address to, string memory uri) public payable {
-        require(totalSupply() < 10000, "Too many Savingotchis");
+        require(totalSupply < 10000, "Too many Savingotchis");
         uint256 price = getBuyPrice();
         require(msg.value >= price, "Not enought matic");
         // update base increase
@@ -51,6 +52,7 @@ contract Savingotchi is SavingotchiState, ERC721, ERC721URIStorage, ERC721Burnab
         _tokenIdCounter.increment();
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
+        totalSupply++;
         
         savingotchiValue[tokenId] = price;
         lastEvolve[tokenId] = block.timestamp;
@@ -94,6 +96,7 @@ contract Savingotchi is SavingotchiState, ERC721, ERC721URIStorage, ERC721Burnab
     // The following functions are overrides required by Solidity.
 
     function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
+        totalSupply--;
         super._burn(tokenId);
     }
 
