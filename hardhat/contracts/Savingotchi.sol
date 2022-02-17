@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 
 import "./SavingotchiStates.sol";
 
@@ -32,6 +33,7 @@ contract Savingotchi is SavingotchiStates, ERC721, ERC721URIStorage, ERC721Burna
     }
 
     function mint(address to, string memory uri) public payable {
+        require(totalSupply() < 10000, "Too many Savingotchis");
         uint256 price = getBuyPrice();
         require(msg.value >= price, "Not enought matic");
         // update base increase
@@ -57,7 +59,35 @@ contract Savingotchi is SavingotchiStates, ERC721, ERC721URIStorage, ERC721Burna
         // todo send price to aave
     
         if (msg.value > price) {
-            msg.sender.transfer(msg.value - price);
+            Address.sendValue(payable(msg.sender), msg.value - price);
+        }
+    }
+
+    function release(uint256 tokenId) {
+        require(ownerOf(tokenId) == msg.sender, "Only owner can release a Savingotchi");
+        require(stage(tokenId) == SavingotchiStage.ADULT, "Only adult Savingotchi can be released");
+        super._burn(tokenId);
+        
+        // TODO withdraw eanings from aave and transfer to owner
+    }
+
+    function evolve(uint256 tokenId) payable {
+        require(ownerOf(tokenId) == msg.sender, "Only owner can evolve a Savingotchi");
+        require(lastEvolve[msg.sender] > (block.timestamp + 7 days), "Can't evolve yet");
+        // free evolve
+        if (lastEvolve[msg.sender] > (block.timestamp + 14 days)) {
+            _evolve(tokenId);
+        } else {
+            uint256 evolvePrice = savingotchiValue[tokenId] * 10 / 100;
+            require(msg.value >= evolvePrice, "Not enought matic");
+            // TODO this is not safe, must recalculate rewards for all users
+            savingotchiValue[tokenId] += evolvePrice;
+            
+            _evolve(tokenId);
+
+            if (msg.value > evolvePrice) {
+                Address.sendValue(payable(msg.sender), msg.value - evolvePrice);
+            }
         }
     }
 

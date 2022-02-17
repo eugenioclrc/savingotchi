@@ -65,5 +65,7 @@ abstract contract SavingotchiState {
     return SavingotchiStage.ADULT;
   }
 
-
+  function _evolve(uint256 tokenId) internal {
+    // TODO
+  }
 }
