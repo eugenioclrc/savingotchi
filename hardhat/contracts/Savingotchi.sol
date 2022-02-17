@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/utils/Address.sol";
 
 import "./SavingotchiStates.sol";
 
-contract Savingotchi is SavingotchiStates, ERC721, ERC721URIStorage, ERC721Burnable, Ownable {
+contract Savingotchi is SavingotchiState, ERC721, ERC721URIStorage, ERC721Burnable, Ownable {
     using Counters for Counters.Counter;
 
     uint256 public lastBuy;
