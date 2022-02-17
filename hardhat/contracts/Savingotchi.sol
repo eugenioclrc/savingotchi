@@ -75,9 +75,9 @@ contract Savingotchi is SavingotchiState, ERC721, ERC721URIStorage, ERC721Burnab
 
     function evolve(uint256 tokenId)  external payable {
         require(ownerOf(tokenId) == msg.sender, "Only owner can evolve a Savingotchi");
-        require(lastEvolve[msg.sender] > (block.timestamp + 7 days), "Can't evolve yet");
+        require(lastEvolve[tokenId] > (block.timestamp + 7 days), "Can't evolve yet");
         // free evolve
-        if (lastEvolve[msg.sender] > (block.timestamp + 14 days)) {
+        if (lastEvolve[tokenId] > (block.timestamp + 14 days)) {
             _evolve(tokenId);
         } else {
             uint256 evolvePrice = savingotchiValue[tokenId] * 10 / 100;
