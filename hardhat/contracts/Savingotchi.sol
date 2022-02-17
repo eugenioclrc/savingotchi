@@ -24,7 +24,7 @@ contract Savingotchi is SavingotchiState, ERC721, ERC721URIStorage, ERC721Burnab
 
     constructor() ERC721("Savingotchi", "GMI") {}
 
-    function getBuyPrice() external view returns(uint256) {
+    function getBuyPrice() public view returns(uint256) {
         uint256 dec = (block.timestamp - lastBuy) / (1 days);
         if (_baseIncreasePrice <= dec) {
             return BASE_PRICE;
@@ -65,7 +65,7 @@ contract Savingotchi is SavingotchiState, ERC721, ERC721URIStorage, ERC721Burnab
         }
     }
 
-    function release(uint256 tokenId) {
+    function release(uint256 tokenId) external {
         require(ownerOf(tokenId) == msg.sender, "Only owner can release a Savingotchi");
         require(stage(tokenId) == SavingotchiStage.ADULT, "Only adult Savingotchi can be released");
         super._burn(tokenId);
@@ -73,7 +73,7 @@ contract Savingotchi is SavingotchiState, ERC721, ERC721URIStorage, ERC721Burnab
         // TODO withdraw eanings from aave and transfer to owner
     }
 
-    function evolve(uint256 tokenId) payable {
+    function evolve(uint256 tokenId)  external payable {
         require(ownerOf(tokenId) == msg.sender, "Only owner can evolve a Savingotchi");
         require(lastEvolve[msg.sender] > (block.timestamp + 7 days), "Can't evolve yet");
         // free evolve
