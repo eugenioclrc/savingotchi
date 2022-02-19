@@ -56,6 +56,9 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         
         lastEvolve[tokenId] = block.timestamp;
         savingotchiType[tokenId] = SavingotchiType.EGG;
+        birth[tokenId] = block.timestamp;
+        gen[tokenId] = uint256(blockhash(block.number - 1));
+  
 
         createVault(tokenId);
         
@@ -72,6 +75,8 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         tokenVaults[tokenId].exit();
         delete tokenVaults[tokenId];
         delete lastEvolve[tokenId];
+        delete gen[tokenId];
+        delete birth[tokenId];
         delete savingotchiType[tokenId];
     }
 
