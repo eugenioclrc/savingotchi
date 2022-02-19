@@ -55,7 +55,7 @@ contract Vault is Ownable {
   function exit(address _user) public onlyOwner {
     uint256 _amount = aMATIC.balanceOf(address(this));
     IAToken(aMATIC).approve(address(WETHGateway), _amount);
-    
+
     // 0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889 WMATIC address
     ILendingPool(seeLendingPool()).withdraw(
         address(wMATIC),
@@ -71,7 +71,7 @@ contract Vault is Ownable {
 
   function withdrawAAVE(address _user, uint _amount) public onlyOwner {
     IAToken(aMATIC).approve(address(WETHGateway), _amount);
-    
+
     // 0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889 WMATIC address
     ILendingPool(seeLendingPool()).withdraw(
         address(wMATIC),
@@ -85,7 +85,7 @@ contract Vault is Ownable {
 
   function withdrawAAVEwMATIC(address _user, uint _amount) public onlyOwner {
     IAToken(aMATIC).approve(address(WETHGateway), _amount);
-    
+
     // 0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889 WMATIC address
     ILendingPool(seeLendingPool()).withdraw(
         address(wMATIC),
@@ -130,6 +130,9 @@ contract Vault is Ownable {
   function maticBalance(address _addr) public view returns(uint){
       return _addr.balance;
   }
+
+  // checekar: aca quizas, no nos va a dar el gas
+  // ej: cuando nos envian un .send solo nos dan 2100 de gas
   receive() external payable {
     depositAAVE();
   }
