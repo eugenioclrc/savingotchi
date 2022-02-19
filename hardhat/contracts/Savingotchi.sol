@@ -69,8 +69,10 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         require(stage(tokenId) == SavingotchiStage.ADULT, "Only adult Savingotchi can be released");
         super._burn(tokenId);
         
-        tokenVaults[tokenId].exit(ownerOf(tokenId));
+        tokenVaults[tokenId].exit();
         delete tokenVaults[tokenId];
+        delete lastEvolve[tokenId];
+        delete savingotchiType[tokenId];
     }
 
     function evolve(uint256 tokenId)  external payable {
