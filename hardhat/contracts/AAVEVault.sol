@@ -54,7 +54,7 @@ contract Vault is Ownable {
   }
   */
 
-  function exit(address _user) public onlyOwner {
+  function exit() public onlyOwner {
     uint256 _amount = aMATIC.balanceOf(address(this));
     IAToken(aMATIC).approve(address(WETHGateway), _amount);
     
@@ -73,8 +73,9 @@ contract Vault is Ownable {
     // IIncentivesController(incentivesController).claimRewards(assets, type(uint).max, address(this));
 
     // TODO selfdestruct y claim withdraws
+    // see https://github.com/beefyfinance/beefy-contracts/blob/master/contracts/archive/strategies/Aave/StrategyAaveMatic.sol
 
-    selfdestruct(payable(owner());
+    selfdestruct(payable(owner()));
   }
 
   function withdrawAAVE(address _user, uint _amount) public onlyOwner {
@@ -98,6 +99,10 @@ contract Vault is Ownable {
         address(this),
         0
     );
+  }
+
+  function aMATICbalance() public view returns(uint256){
+      return aMATIC.balanceOf(address(this));
   }
   
   function seeLendingPool() public view returns (address){

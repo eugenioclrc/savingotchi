@@ -22,7 +22,6 @@ pragma solidity ^0.8.4;
 */
 
 abstract contract SavingotchiState {
-  mapping(uint256 => uint256) birth;
   mapping(uint256 => uint256) gen;
   mapping(uint256 => uint256) lastEvolve;
   mapping(uint256 => SavingotchiType) savingotchiType;
