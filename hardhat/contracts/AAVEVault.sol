@@ -66,13 +66,15 @@ contract Vault is Ownable {
       );
 
     wMATIC.withdraw(_amount);
-    Address.sendValue(payable(_user), _amount);
+    // Address.sendValue(payable(_user), _amount);
     
     // aave incentives = 0xd41ae58e803edf4304334acce4dc4ec34a63c644
     // 0xd41ae58e803edf4304334acce4dc4ec34a63c644
     // IIncentivesController(incentivesController).claimRewards(assets, type(uint).max, address(this));
 
     // TODO selfdestruct y claim withdraws
+
+    selfdestruct(payable(owner());
   }
 
   function withdrawAAVE(address _user, uint _amount) public onlyOwner {
