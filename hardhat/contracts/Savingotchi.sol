@@ -8,10 +8,12 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+
 import "./SavingotchiStates.sol";
 import "./SavingotchiVaultManager.sol";
 
-contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC721URIStorage, ERC721Burnable, Ownable {
+contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC721URIStorage, ERC721Burnable, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
 
     uint256 public totalSupply;
@@ -33,7 +35,7 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         return BASE_PRICE * (11500 ** (_baseIncreasePrice-dec)) / 10000;
     }
 
-    function mint(address to, string memory uri) /* todo nonRentrant */ public payable {
+    function mint(address to, string memory uri) nonReentrant() public payable {
         require(totalSupply < 10000, "Too many Savingotchis");
         uint256 price = getBuyPrice();
         require(msg.value >= price, "Not enought matic");
@@ -66,7 +68,7 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         }
     }
 
-    function release(uint256 tokenId) external {
+    function release(uint256 tokenId) nonReentrant() external {
         require(ownerOf(tokenId) == msg.sender, "Only owner can release a Savingotchi");
         require(stage(tokenId) == SavingotchiStage.ADULT, "Only adult Savingotchi can be released");
         super._burn(tokenId);
@@ -78,7 +80,7 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         delete savingotchiType[tokenId];
     }
 
-    function evolve(uint256 tokenId)  external payable {
+    function evolve(uint256 tokenId) nonReentrant() external payable {
         require(ownerOf(tokenId) == msg.sender, "Only owner can evolve a Savingotchi");
         require(lastEvolve[tokenId] > (block.timestamp + 7 days), "Can't evolve yet");
         // free evolve

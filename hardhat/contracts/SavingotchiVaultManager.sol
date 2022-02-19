@@ -9,7 +9,7 @@ contract SavingotchiVaultManager {
 
   address public vault;
 
-  constructor(address _vault) public {
+  constructor(address _vault) {
     vault = _vault;
   }
   
