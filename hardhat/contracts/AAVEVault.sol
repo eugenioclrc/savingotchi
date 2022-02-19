@@ -34,6 +34,7 @@ contract Vault is Ownable {
     wMATIC.approve(address(this), type(uint).max);
   }
 
+  /*
   //https://docs.aave.com/developers/v/2.0/the-core-protocol/protocol-data-provider
   function Info() public view returns(uint) {
 
@@ -51,6 +52,7 @@ contract Vault is Ownable {
 
     return liquidityRate;
   }
+  */
 
   function exit(address _user) public onlyOwner {
     uint256 _amount = aMATIC.balanceOf(address(this));
@@ -65,6 +67,10 @@ contract Vault is Ownable {
 
     wMATIC.withdraw(_amount);
     Address.sendValue(payable(_user), _amount);
+    
+    // aave incentives = 0xd41ae58e803edf4304334acce4dc4ec34a63c644
+    // 0xd41ae58e803edf4304334acce4dc4ec34a63c644
+    // IIncentivesController(incentivesController).claimRewards(assets, type(uint).max, address(this));
 
     // TODO selfdestruct y claim withdraws
   }
@@ -83,16 +89,6 @@ contract Vault is Ownable {
     Address.sendValue(payable(_user), _amount);
   }
 
-  function withdrawAAVEwMATIC(address _user, uint _amount) public onlyOwner {
-    IAToken(aMATIC).approve(address(WETHGateway), _amount);
-    
-    // 0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889 WMATIC address
-    ILendingPool(seeLendingPool()).withdraw(
-        address(wMATIC),
-        _amount,
-        _user
-      );
-  }
 
   function depositAAVE() public payable {
     WETHGateway.depositETH{value: msg.value }(
@@ -101,35 +97,11 @@ contract Vault is Ownable {
         0
     );
   }
-
-  function wrapMATIC() external payable {
-      wMATIC.deposit{value: msg.value}();
-  }
-
-  function unwrapMATIC(uint _amount) external {
-      wMATIC.transfer(address(this),_amount);
-      wMATIC.withdraw(_amount);
-  }
-
-  // function to send rewards upon liquidation
-  function sendMoney(address user, uint256 amount) external onlyOwner {
-    Address.sendValue(payable(user), amount);
-  }
-
+  
   function seeLendingPool() public view returns (address){
       return ILendingPoolAddressesProvider(LendingPoolAddressesProviderAddress).getLendingPool();
   }
 
-  function aMATICbalance() public view returns(uint256){
-      return aMATIC.balanceOf(address(this));
-  }
-
-  function wMATICbalance() public view returns(uint256){
-      return wMATIC.balanceOf(address(this));
-  }
-  function maticBalance(address _addr) public view returns(uint){
-      return _addr.balance;
-  }
   receive() external payable {
     depositAAVE();
   }
