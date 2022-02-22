@@ -22,7 +22,8 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
 
     Counters.Counter private _tokenIdCounter;
 
-    constructor(address _vault) SavingotchiVaultManager(_vault) ERC721("Savingotchi", "GMI") { }
+    constructor(address _vault) SavingotchiVaultManager(_vault) ERC721("Savingotchi", "GMI") {
+    }
 
     function getBuyPrice() public view returns(uint256) {
         uint256 dec = (block.timestamp - lastBuy) / (1 days);
@@ -56,7 +57,8 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
 
         lastEvolve[tokenId] = block.timestamp;
         savingotchiType[tokenId] = SavingotchiType.EGG;
-
+        gen[tokenId] = uint256(blockhash(block.number - 1));
+  
         createVault(tokenId);
 
         if (msg.value > price) {
@@ -70,10 +72,10 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
 
         _burn(_tokenId);
         totalSupply--;
-
-        // estos los borramos?
-        _setTokenURI(_tokenId, '');
+        
+        _setTokenURI(_tokenId, ''); // esto lo borramos?
         delete lastEvolve[_tokenId];
+        delete gen[_tokenId];
         delete savingotchiType[_tokenId];
 
         tokenVaults[_tokenId].exit(ownerOf(_tokenId));

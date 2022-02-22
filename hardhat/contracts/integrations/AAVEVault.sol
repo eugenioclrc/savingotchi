@@ -2,11 +2,11 @@
 pragma solidity ^0.8.4;
 
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
+//import "@openzeppelin/contracts/access/Ownable.sol";
+//import "@openzeppelin/contracts/utils/Address.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
+/*
 import "./AAVEInterfaces.sol";
 
 contract Vault is Ownable {
@@ -24,7 +24,7 @@ contract Vault is Ownable {
   // WETHGATEWAY 0xbEadf48d62aCC944a06EEaE0A9054A90E5A7dc97
   // lendingPool 0xd05e3E715d945B59290df0ae8eF85c1BdB684744
   // aMATIC 0x8dF3aad3a84da6b69A4DA8aeC3eA40d9091B2Ac4
-  constructor(address _WETHGateway, address _LendingPoolAddressesProviderAddress, address _aMATIC /*, address _wMATIC */) {
+  constructor(address _WETHGateway, address _LendingPoolAddressesProviderAddress, address _aMATIC /*, address _wMATIC ) {
     WETHGateway = IWETHGateway(_WETHGateway);
     LendingPoolAddressesProviderAddress = _LendingPoolAddressesProviderAddress;
     aMATIC = IAToken(_aMATIC);
@@ -34,6 +34,7 @@ contract Vault is Ownable {
     wMATIC.approve(address(this), type(uint).max);
   }
 
+  /*
   //https://docs.aave.com/developers/v/2.0/the-core-protocol/protocol-data-provider
   function Info() public view returns(uint) {
 
@@ -52,7 +53,7 @@ contract Vault is Ownable {
     return liquidityRate;
   }
 
-  function exit(address _user) public onlyOwner {
+  function exit() public onlyOwner {
     uint256 _amount = aMATIC.balanceOf(address(this));
     IAToken(aMATIC).approve(address(WETHGateway), _amount);
 
@@ -64,9 +65,16 @@ contract Vault is Ownable {
       );
 
     wMATIC.withdraw(_amount);
-    Address.sendValue(payable(_user), _amount);
+    // Address.sendValue(payable(_user), _amount);
+
+    // aave incentives = 0xd41ae58e803edf4304334acce4dc4ec34a63c644
+    // 0xd41ae58e803edf4304334acce4dc4ec34a63c644
+    // IIncentivesController(incentivesController).claimRewards(assets, type(uint).max, address(this));
 
     // TODO selfdestruct y claim withdraws
+    // see https://github.com/beefyfinance/beefy-contracts/blob/master/contracts/archive/strategies/Aave/StrategyAaveMatic.sol
+
+    selfdestruct(payable(owner()));
   }
 
   function withdrawAAVE(address _user, uint _amount) public onlyOwner {
@@ -83,17 +91,6 @@ contract Vault is Ownable {
     Address.sendValue(payable(_user), _amount);
   }
 
-  function withdrawAAVEwMATIC(address _user, uint _amount) public onlyOwner {
-    IAToken(aMATIC).approve(address(WETHGateway), _amount);
-
-    // 0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889 WMATIC address
-    ILendingPool(seeLendingPool()).withdraw(
-        address(wMATIC),
-        _amount,
-        _user
-      );
-  }
-
   function depositAAVE() public payable {
     WETHGateway.depositETH{value: msg.value }(
         seeLendingPool(),
@@ -102,33 +99,12 @@ contract Vault is Ownable {
     );
   }
 
-  function wrapMATIC() external payable {
-      wMATIC.deposit{value: msg.value}();
-  }
-
-  function unwrapMATIC(uint _amount) external {
-      wMATIC.transfer(address(this),_amount);
-      wMATIC.withdraw(_amount);
-  }
-
-  // function to send rewards upon liquidation
-  function sendMoney(address user, uint256 amount) external onlyOwner {
-    Address.sendValue(payable(user), amount);
-  }
-
-  function seeLendingPool() public view returns (address){
-      return ILendingPoolAddressesProvider(LendingPoolAddressesProviderAddress).getLendingPool();
-  }
-
   function aMATICbalance() public view returns(uint256){
       return aMATIC.balanceOf(address(this));
   }
 
-  function wMATICbalance() public view returns(uint256){
-      return wMATIC.balanceOf(address(this));
-  }
-  function maticBalance(address _addr) public view returns(uint){
-      return _addr.balance;
+  function seeLendingPool() public view returns (address){
+      return ILendingPoolAddressesProvider(LendingPoolAddressesProviderAddress).getLendingPool();
   }
 
   // checekar: aca quizas, no nos va a dar el gas
@@ -136,4 +112,41 @@ contract Vault is Ownable {
   receive() external payable {
     depositAAVE();
   }
+}
+*/
+
+//pragma solidity >=0.4.22 <0.7.0;
+
+
+
+interface IaToken {
+    function balanceOf(address _user) external view returns (uint256);
+    function redeem(uint256 _amount) external;
+}
+
+
+interface IAaveLendingPool {
+    function deposit(address _reserve, uint256 _amount, uint16 _referralCode) external;
+}
+
+contract AAVEVault {
+    IERC20 internal immutable wMatic = IERC20();
+    IaToken internal immutable aMATIC = IaToken();
+    IAaveLendingPool internal immutable aaveLendingPool = IAaveLendingPool();
+
+    constructor() public {
+        wMatic.approve(address(aaveLendingPool), type(uint256).max);
+    }
+
+    function deposit(uint256 _amount) external {
+        userDepositedMatic[msg.sender] = _amount;
+        aaveLendingPool.deposit(address(dai), _amount, 0);
+    }
+
+    function exit() external {
+        aToken.redeem(_amountInDai);
+        require(dai.transferFrom(address(this), msg.sender, _amountInDai), "DAI Transfer failed!");
+
+        userDepositedMatic[msg.sender] = userDepositedMatic[msg.sender] - _amountInDai;
+    }
 }
