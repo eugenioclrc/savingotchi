@@ -4,11 +4,17 @@
 
 pragma solidity ^0.8.4;
 
+import "@openzeppelin/contracts/access/Ownable.sol";
+
 import "@chainlink/contracts/src/v0.8/interfaces/LinkTokenInterface.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 
-contract SavingotchiRandom is VRFConsumerBaseV2 {
+interface ISavingotchi {
+  function evolveStep2(uint256 tokenId, uint256 rnd) external;
+}
+
+contract Chaos is VRFConsumerBaseV2, Ownable {
   VRFCoordinatorV2Interface COORDINATOR;
   LinkTokenInterface LINKTOKEN;
 
@@ -46,14 +52,22 @@ contract SavingotchiRandom is VRFConsumerBaseV2 {
   mapping(uint256 => uint256) internal tokenTorequestId;
   mapping(uint256 => uint256) internal requestIdToToken;
 
+  ISavingotchi public savingotchi;
+
   constructor(uint64 subscriptionId) VRFConsumerBaseV2(vrfCoordinator) {
     COORDINATOR = VRFCoordinatorV2Interface(vrfCoordinator);
     LINKTOKEN = LinkTokenInterface(link);
     s_subscriptionId = subscriptionId;
   }
 
+  function setSavigotchi(ISavingotchi savingotchi_) onlyOwner external {
+    savingotchi = savingotchi_;
+  }
+
+
   // Assumes the subscription is funded sufficiently.
-  function requestRandomWords(uint256 tokenId) internal {
+  function requestRandomWords(uint256 tokenId) external {
+    require(msg.sender == address(savingotchi), "Only savingotchi can call this function");
     require(tokenTorequestId[tokenId] == 0, "A random process is running");
     // Will revert if subscription is not set and funded.
     tokenTorequestId[tokenId] = COORDINATOR.requestRandomWords(
@@ -68,12 +82,12 @@ contract SavingotchiRandom is VRFConsumerBaseV2 {
   }
   
   function fulfillRandomWords(
-    uint256 /* requestId */,
-    uint256[] memory /*randomWords*/
-  ) internal virtual override { 
-    // delete tokenTorequestId[requestIdToToken[requestId]];
-    // delete requestIdToToken[requestId];
-    revert("this is implemented on child contract");
+    uint256 requestId,
+    uint256[] memory randomWords
+  ) internal override { 
+    delete tokenTorequestId[requestIdToToken[requestId]];
+    delete requestIdToToken[requestId];
+    savingotchi.evolveStep2(requestIdToToken[requestId], randomWords[0]);
   }
 
 }

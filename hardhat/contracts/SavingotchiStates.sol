@@ -1,7 +1,7 @@
 pragma solidity ^0.8.4;
 
 // source https://docs.chain.link/docs/get-a-random-number/
-import "./SavingotchiRandomness.sol";
+import "./IChaos.sol";
 /*
   EGG,
   BOTAMON
@@ -23,10 +23,12 @@ import "./SavingotchiRandomness.sol";
         TEDDYMON
 */
 
-contract SavingotchiState is SavingotchiRandom {
+abstract contract SavingotchiState {
   mapping(uint256 => uint256) gen;
   mapping(uint256 => uint256) lastEvolve;
   mapping(uint256 => SavingotchiType) savingotchiType;
+
+  IChaos public evolver;
   
   string[15] internal images = [
     // 0
@@ -93,10 +95,6 @@ contract SavingotchiState is SavingotchiRandom {
           TEDDYMON
   }
 
-  constructor(uint64 subscriptionId) SavingotchiRandom(subscriptionId) {
-    
-  }
-
   function stage(uint256 tokenId) public view returns (SavingotchiStage) {
     if (savingotchiType[tokenId] == SavingotchiType.EGG) {
       return SavingotchiStage.EGG;
@@ -117,19 +115,8 @@ contract SavingotchiState is SavingotchiRandom {
   }
   */
 
-  // chainlink callback
-  function fulfillRandomWords(
-    uint256 requestId,
-    uint256[] memory randomWords
-  ) internal override {
-    _evolveStep2(requestIdToToken[requestId], randomWords[0]);
-
-    delete tokenTorequestId[requestIdToToken[requestId]];
-    delete requestIdToToken[requestId];
-    // revert("this is implemented on evolve");
-  }
-
-  function _evolveStep2(uint256 tokenId, uint256 rnd) internal {
+  function evolveStep2(uint256 tokenId, uint256 rnd) external {
+    require(msg.sender == address(evolver), "only chaos can evolve a savingotchi");
     if (savingotchiType[tokenId] == SavingotchiType.EGG) {
       savingotchiType[tokenId] = SavingotchiType.BOTAMON;
     } else if(savingotchiType[tokenId] == SavingotchiType.BOTAMON) {
@@ -176,7 +163,7 @@ contract SavingotchiState is SavingotchiRandom {
     
   function _evolve(uint256 tokenId) internal {
     require(stage(tokenId) != SavingotchiStage.ADULT, "Cannot evolve an adult Savingotchi");
-    requestRandomWords(tokenId);
+    evolver.requestRandomWords(tokenId);
 
     /*
     _evolveStep2(getRandom());
