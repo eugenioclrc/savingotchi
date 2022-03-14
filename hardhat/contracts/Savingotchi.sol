@@ -21,7 +21,7 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
 
     Counters.Counter private _tokenIdCounter;
 
-    constructor(address _vault) SavingotchiVaultManager(_vault) ERC721("Savingotchi", "GMI") {
+    constructor(address _vault, uint64 subscriptionId) SavingotchiState(subscriptionId) SavingotchiVaultManager(_vault) ERC721("Savingotchi", "GMI") {
     }
 
     function getBuyPrice() public view returns(uint256) {

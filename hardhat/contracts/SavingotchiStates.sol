@@ -1,6 +1,6 @@
 pragma solidity ^0.8.4;
 
-
+// source https://docs.chain.link/docs/get-a-random-number/
 import "./SavingotchiRandomness.sol";
 /*
   EGG,
@@ -23,7 +23,7 @@ import "./SavingotchiRandomness.sol";
         TEDDYMON
 */
 
-abstract contract SavingotchiState {
+contract SavingotchiState is SavingotchiRandom {
   mapping(uint256 => uint256) gen;
   mapping(uint256 => uint256) lastEvolve;
   mapping(uint256 => SavingotchiType) savingotchiType;
@@ -93,6 +93,10 @@ abstract contract SavingotchiState {
           TEDDYMON
   }
 
+  constructor(uint64 subscriptionId) SavingotchiRandom(subscriptionId) {
+    
+  }
+
   function stage(uint256 tokenId) public view returns (SavingotchiStage) {
     if (savingotchiType[tokenId] == SavingotchiType.EGG) {
       return SavingotchiStage.EGG;
@@ -107,62 +111,22 @@ abstract contract SavingotchiState {
     return SavingotchiStage.ADULT;
   }
 
+  /*
   function getRandom() internal view returns (uint256) {
     return uint256(keccak256(abi.encodePacked(block.timestamp)));
   }
+  */
 
+  // chainlink callback
   function fulfillRandomWords(
     uint256 requestId,
     uint256[] memory randomWords
-  ) internal override { 
+  ) internal override {
+    _evolveStep2(requestIdToToken[requestId], randomWords[0]);
+
     delete tokenTorequestId[requestIdToToken[requestId]];
     delete requestIdToToken[requestId];
     // revert("this is implemented on evolve");
-
-        uint256 rnd;
-    if (savingotchiType[tokenId] == SavingotchiType.EGG) {
-      savingotchiType[tokenId] = SavingotchiType.BOTAMON;
-    } else if(savingotchiType[tokenId] == SavingotchiType.BOTAMON) {
-      savingotchiType[tokenId] = SavingotchiType.KOROMON;
-    } else if(savingotchiType[tokenId] == SavingotchiType.KOROMON) {
-      rnd = getRandom();
-      if ((rnd % 2) == 0) {
-        savingotchiType[tokenId] = SavingotchiType.AGUMON;
-      } else {
-        savingotchiType[tokenId] = SavingotchiType.BETAMON;
-      }
-    } else if(savingotchiType[tokenId] == SavingotchiType.AGUMON) {
-      rnd = getRandom() % 4;
-      if (rnd == 0) {
-        savingotchiType[tokenId] = SavingotchiType.GREYMON;
-      } else if (rnd == 1) {
-        savingotchiType[tokenId] = SavingotchiType.TYRANOMON;
-      } else if (rnd == 2) {
-        savingotchiType[tokenId] = SavingotchiType.DARMKON;
-      } else {
-        savingotchiType[tokenId] = SavingotchiType.MERAMON;
-      }
-    } else if(savingotchiType[tokenId] == SavingotchiType.BETAMON) {
-      rnd = getRandom() % 4;
-      if (rnd == 0) {
-        savingotchiType[tokenId] = SavingotchiType.AIRDRAMON;
-      } else if (rnd == 1) {
-        savingotchiType[tokenId] = SavingotchiType.SEADRAMON;
-      } else if (rnd == 2) {
-        savingotchiType[tokenId] = SavingotchiType.NUMEMON;
-      } else {
-        savingotchiType[tokenId] = SavingotchiType.MERAMON;
-      }
-    } else {
-      rnd = getRandom() % 3;
-      if(rnd == 0) {
-        savingotchiType[tokenId] = SavingotchiType.METAL_GREYMON;
-      } else if(rnd == 1) {
-        savingotchiType[tokenId] = SavingotchiType.MAMEMON;
-      } else {
-        savingotchiType[tokenId] = SavingotchiType.TEDDYMON;
-      }
-    }
   }
 
   function _evolveStep2(uint256 tokenId, uint256 rnd) internal {

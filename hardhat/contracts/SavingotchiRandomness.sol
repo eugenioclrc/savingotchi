@@ -2,13 +2,13 @@
 // An example of a consumer contract that relies on a subscription for funding.
 // Take it from https://docs.chain.link/docs/get-a-random-number/
 
-pragma solidity ^0.8.7;
+pragma solidity ^0.8.4;
 
 import "@chainlink/contracts/src/v0.8/interfaces/LinkTokenInterface.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 
-contract VRFv2Consumer is VRFConsumerBaseV2 {
+contract SavingotchiRandom is VRFConsumerBaseV2 {
   VRFCoordinatorV2Interface COORDINATOR;
   LinkTokenInterface LINKTOKEN;
 
@@ -54,7 +54,7 @@ contract VRFv2Consumer is VRFConsumerBaseV2 {
 
   // Assumes the subscription is funded sufficiently.
   function requestRandomWords(uint256 tokenId) internal {
-    require(s_requestId[tokenId] == 0, "A random process is running");
+    require(tokenTorequestId[tokenId] == 0, "A random process is running");
     // Will revert if subscription is not set and funded.
     tokenTorequestId[tokenId] = COORDINATOR.requestRandomWords(
       keyHash,
@@ -64,16 +64,16 @@ contract VRFv2Consumer is VRFConsumerBaseV2 {
       numWords
     );
 
-    requestIdToToken[s_requestId[tokenId]] = tokenId;
+    requestIdToToken[tokenTorequestId[tokenId]] = tokenId;
   }
   
   function fulfillRandomWords(
-    uint256 requestId,
-    uint256[] memory randomWords
-  ) internal override { 
-    delete tokenTorequestId[requestIdToToken[requestId]];
-    delete requestIdToToken[requestId];
-    // revert("this is implemented on evove");
+    uint256 /* requestId */,
+    uint256[] memory /*randomWords*/
+  ) internal virtual override { 
+    // delete tokenTorequestId[requestIdToToken[requestId]];
+    // delete requestIdToToken[requestId];
+    revert("this is implemented on child contract");
   }
 
 }
