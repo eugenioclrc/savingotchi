@@ -28,7 +28,7 @@ contract SavingotchiState is SavingotchiRandom {
   mapping(uint256 => uint256) lastEvolve;
   mapping(uint256 => SavingotchiType) savingotchiType;
   
-  string[] internal images = [
+  string[15] internal images = [
     // 0
     '<path stroke="#000" d="M8 4h1M6 7h1M13 9h1M7 11h1" /><path stroke="#000" d="M9 4h1M10 6h1M7 7h1M10 7h1M12 7h1M5 8h1M14 9h1M8 11h1M9 15h1" /><path stroke="#000" d="M10 4h1M6 6h1M11 6h1M12 8h1M4 9h1M8 10h1M9 11h1M9 12h1M11 13h2M6 14h2M12 14h1M11 15h1" /><path stroke="#000" d="M7 5h1M11 5h1M13 8h1M7 9h1M7 10h1M14 10h1" /><path stroke="#000" d="M8 5h1M7 6h1M12 9h1M14 11h1M4 12h1M8 12h1M14 12h1M5 13h2M13 13h1M10 14h2" /><path stroke="#FFF" d="M9 5h1M8 8h1M10 8h1M9 9h1M11 11h2" /><path stroke="#FFF" d="M10 5h1M9 6h1M11 10h1M13 10h1M5 12h1" /><path stroke="#000" d="M8 6h1M5 7h1M11 8h1M4 10h1M4 11h1M12 12h1M8 15h1" /><path stroke="#000" d="M12 6h1M13 7h1" /><path stroke="#FFF" d="M8 7h1M9 8h1M5 10h1M11 12h1" /><path stroke="#FFF" d="M9 7h1M7 8h1M5 9h2M8 9h1M10 9h2M6 10h1M9 10h1M12 10h1M5 11h2M13 11h1M7 12h1M10 12h1M7 13h2M10 13h1M9 14h1" /><path stroke="#000" d="M11 7h1M7 15h1M10 15h1" /><path stroke="#FFF" d="M6 8h1M10 10h1M13 12h1" /><path stroke="#FFF" d="M10 11h1M8 14h1" /><path stroke="#FFF" d="M6 12h1M9 13h1" />',
     // 1. Bottamon  

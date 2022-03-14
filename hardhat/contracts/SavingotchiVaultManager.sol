@@ -7,10 +7,10 @@ contract SavingotchiVaultManager {
   
   IAToken aMATIC = IAToken(0x8dF3aad3a84da6b69A4DA8aeC3eA40d9091B2Ac4);
 
-  address public vault;
+  // address public vault;
 
-  constructor(address _vault) public {
-    vault = _vault;
+  constructor(/* address _vault */) public {
+    // vault = _vault;
   }
   
   function createVault(uint256 tokenId) internal {

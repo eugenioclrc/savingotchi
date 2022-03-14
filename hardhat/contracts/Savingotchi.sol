@@ -2,7 +2,6 @@
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
@@ -11,7 +10,7 @@ import "@openzeppelin/contracts/utils/Address.sol";
 import "./SavingotchiStates.sol";
 import "./SavingotchiVaultManager.sol";
 
-contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC721URIStorage, ERC721Burnable, Ownable {
+contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC721Burnable, Ownable {
     using Counters for Counters.Counter;
 
     uint256 public totalSupply;
@@ -21,7 +20,7 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
 
     Counters.Counter private _tokenIdCounter;
 
-    constructor(address _vault, uint64 subscriptionId) SavingotchiState(subscriptionId) SavingotchiVaultManager(_vault) ERC721("Savingotchi", "GMI") {
+    constructor(/*address _vault, */ uint64 subscriptionId) SavingotchiState(subscriptionId) SavingotchiVaultManager (/* _vault*/) ERC721("Savingotchi", "GMI") {
     }
 
     function getBuyPrice() public view returns(uint256) {
@@ -33,7 +32,7 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         return BASE_PRICE * (11500 ** (_baseIncreasePrice-dec)) / 10000;
     }
 
-    function mint(address to, string memory uri) /* todo nonRentrant */ public payable {
+    function mint(address to) /* todo nonRentrant */ public payable {
         require(totalSupply < 10000, "Too many Savingotchis");
         uint256 price = getBuyPrice();
         require(msg.value >= price, "Not enought matic");
@@ -51,7 +50,6 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
         _safeMint(to, tokenId);
-        _setTokenURI(tokenId, uri);
         totalSupply++;
         
         lastEvolve[tokenId] = block.timestamp;
@@ -78,7 +76,7 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         delete savingotchiType[tokenId];
     }
 
-    function evolve(uint256 tokenId)  external payable {
+    function evolve(uint256 tokenId) external payable {
         require(ownerOf(tokenId) == msg.sender, "Only owner can evolve a Savingotchi");
         require(lastEvolve[tokenId] > (block.timestamp + 7 days), "Can't evolve yet");
         // free evolve
@@ -107,7 +105,7 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
 
     // The following functions are overrides required by Solidity.
 
-    function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
+    function _burn(uint256 tokenId) internal override(ERC721) {
         totalSupply--;
         super._burn(tokenId);
     }
@@ -115,7 +113,7 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
     function tokenURI(uint256 tokenId)
         public
         view
-        override(ERC721, ERC721URIStorage)
+        override(ERC721)
         returns (string memory)
     {
         return super.tokenURI(tokenId);
