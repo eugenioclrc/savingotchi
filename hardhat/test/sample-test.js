@@ -5,13 +5,21 @@ describe("Greeter", function() {
     const vrfCoordFactory = await ethers.getContractFactory(
       "MockVRFCoordinator"
     );
+
+    const CHAINLINK_SUBSCRIPTION_ID = 4;
+
     const mockVrfCoordinator = await vrfCoordFactory.deploy();
     await mockVrfCoordinator.deployed();
 
+    const Chaos = await ethers.getContractFactory("Chaos");
+    const chaos = await Chaos.deploy(CHAINLINK_SUBSCRIPTION_ID, mockVrfCoordinator.address);
+    await chaos.deployed();
+    
     const Savingotchi = await ethers.getContractFactory("Savingotchi");
-    const CHAINLINK_SUBSCRIPTION_ID = 4;
-    const savingotchi = await Savingotchi.deploy(CHAINLINK_SUBSCRIPTION_ID);
+    const savingotchi = await Savingotchi.deploy();
     await savingotchi.deployed();
+
+    await savingotchi.setEvolver(chaos.address);
 /*
     expect(await savingotchi.greet()).to.equal("Hello, world!");
 

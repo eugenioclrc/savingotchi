@@ -23,7 +23,7 @@ contract Chaos is VRFConsumerBaseV2, Ownable {
 
   // Rinkeby coordinator. For other networks,
   // see https://docs.chain.link/docs/vrf-contracts/#configurations
-  address vrfCoordinator = 0x6168499c0cFfCaCD319c818142124B7A15E857ab;
+  // address vrfCoordinator = 0x6168499c0cFfCaCD319c818142124B7A15E857ab;
 
   // Rinkeby LINK token contract. For other networks,
   // see https://docs.chain.link/docs/vrf-contracts/#configurations
@@ -54,7 +54,7 @@ contract Chaos is VRFConsumerBaseV2, Ownable {
 
   ISavingotchi public savingotchi;
 
-  constructor(uint64 subscriptionId) VRFConsumerBaseV2(vrfCoordinator) {
+  constructor(uint64 subscriptionId, address vrfCoordinator) VRFConsumerBaseV2(vrfCoordinator) {
     COORDINATOR = VRFCoordinatorV2Interface(vrfCoordinator);
     LINKTOKEN = LinkTokenInterface(link);
     s_subscriptionId = subscriptionId;
