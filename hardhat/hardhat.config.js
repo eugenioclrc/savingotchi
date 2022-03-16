@@ -1,5 +1,9 @@
+require("dotenv").config();
 require("@nomiclabs/hardhat-waffle");
 require('hardhat-contract-sizer');
+
+// npx hardhart node --fork https://speedy-nodes-nyc.moralis.io/APIKEY/polygon/mumbai
+
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -18,6 +22,11 @@ task("accounts", "Prints the list of accounts", async () => {
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
+  networks: {
+    localhost: {
+      accounts: process.env.MUMBAI_KEY ? [process.env.MUMBAI_KEY] : undefined
+  },
+},
 solidity: {
   compilers: [
   {

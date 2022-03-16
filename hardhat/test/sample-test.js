@@ -1,23 +1,41 @@
 const { expect } = require("chai");
-const { ethers } = require("hardhat");
+const { ethers, network } = require("hardhat");
 
 let savingotchi;
 
 describe("Savingotchi", function() {
   it("Should deploy", async function() {
-    const vrfCoordFactory = await ethers.getContractFactory(
-      "MockVRFCoordinator"
-    );
+    // await network.provider.request({
+    //   method: "hardhat_reset",
+    //   params: [
+    //     {
+    //       forking: {
+    //         jsonRpcUrl: "https://speedy-nodes-nyc.moralis.io/APIKEY/polygon/mumbai",
+    //         blockNumber: 25542728,
+    //       },
+    //     },
+    //   ],
+    // });
+    const [signer] = await ethers.getSigners();
 
-    const CHAINLINK_SUBSCRIPTION_ID = 4;
+    // const vrfCoordFactory = await ethers.getContractFactory(
+    //   "MockVRFCoordinator"
+    // );
 
-    const mockVrfCoordinator = await vrfCoordFactory.deploy();
-    await mockVrfCoordinator.deployed();
+    // const CHAINLINK_SUBSCRIPTION_ID = 4;
+
+    // const mockVrfCoordinator = await vrfCoordFactory.deploy();
+    // await mockVrfCoordinator.deployed();
+
+    // const Chaos = await ethers.getContractFactory("ChaosV2");
+    // const chaos = await Chaos.deploy(CHAINLINK_SUBSCRIPTION_ID, mockVrfCoordinator.address);
+    // await chaos.deployed();
+    
 
     const Chaos = await ethers.getContractFactory("Chaos");
-    const chaos = await Chaos.deploy(CHAINLINK_SUBSCRIPTION_ID, mockVrfCoordinator.address);
+    const chaos = await Chaos.deploy();
     await chaos.deployed();
-    
+
     const Savingotchi = await ethers.getContractFactory("Savingotchi");
     savingotchi = await Savingotchi.deploy();
     await savingotchi.deployed();
@@ -26,16 +44,16 @@ describe("Savingotchi", function() {
 
     await chaos.transferOwnership(savingotchi.address);
 
-    /*
-    expect(await savingotchi.greet()).to.equal("Hello, world!");
+    const TOKEN_ABI = [
+      'function transfer(address to, uint amount)',
+    ];
+    const tokenLink = new ethers.Contract('0x326C977E6efc84E512bB9C30f76E30c160eD06FB', TOKEN_ABI);
 
-    const setGreetingTx = await savingotchi.setGreeting("Hola, mundo!");
-    
-    // wait until the transaction is mined
-    await setGreetingTx.wait();
+    // fund chaos with link;
+    await tokenLink.connect(signer).transfer(chaos.address, ethers.utils.parseEther('1'));
 
-    expect(await greeter.greet()).to.equal("Hola, mundo!");
-  */
+
+
   });
 
   it("Should buy", async function() {

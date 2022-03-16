@@ -10,11 +10,9 @@ import "@chainlink/contracts/src/v0.8/interfaces/LinkTokenInterface.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 
-interface ISavingotchi {
-  function evolveStep2(uint256 tokenId, uint256 rnd) external;
-}
 
-contract Chaos is VRFConsumerBaseV2, Ownable {
+
+contract ChaosV2 is VRFConsumerBaseV2, Ownable {
   VRFCoordinatorV2Interface COORDINATOR;
   LinkTokenInterface LINKTOKEN;
 
@@ -66,7 +64,7 @@ contract Chaos is VRFConsumerBaseV2, Ownable {
 
 
   // Assumes the subscription is funded sufficiently.
-  function requestRandomWords(uint256 tokenId) external {
+  function requestRandom(uint256 tokenId) external {
     require(msg.sender == address(savingotchi), "Only savingotchi can call this function");
     require(tokenTorequestId[tokenId] == 0, "A random process is running");
     // Will revert if subscription is not set and funded.
