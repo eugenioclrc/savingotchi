@@ -38,7 +38,7 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         return BASE_PRICE * (11500 ** (_baseIncreasePrice-dec)) / 10000;
     }
 
-    function mint(address to) nonReentrant public payable {
+    function mint() nonReentrant public payable {
         require(totalSupply < 10000, "Too many Savingotchis");
         uint256 price = getBuyPrice();
         require(msg.value >= price, "Not enought matic");
@@ -55,14 +55,13 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         
         uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
-        _safeMint(to, tokenId);
+        _safeMint(msg.sender, tokenId);
         totalSupply++;
         
         lastEvolve[tokenId] = block.timestamp;
         savingotchiType[tokenId] = SavingotchiType.EGG;
         gen[tokenId] = uint256(blockhash(block.number - 1));
   
-
         createVault(tokenId);
         
         if (msg.value > price) {

@@ -41,6 +41,6 @@ describe("Savingotchi", function() {
   it("Should buy", async function() {
     const basePrice = await savingotchi.getBuyPrice();
     expect(basePrice).to.equal(ethers.utils.parseEther("1"));
-    
+    await savingotchi.mint({ value: ethers.utils.parseEther("1") });
   })
 });
