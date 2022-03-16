@@ -1,6 +1,8 @@
 require("dotenv").config();
 require("@nomiclabs/hardhat-waffle");
 require('hardhat-contract-sizer');
+require('hardhat-abi-exporter');
+
 
 // npx hardhart node --fork https://speedy-nodes-nyc.moralis.io/APIKEY/polygon/mumbai
 
