@@ -7,10 +7,12 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+
 import "./SavingotchiStates.sol";
 import "./SavingotchiVaultManager.sol";
 
-contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC721Burnable, Ownable {
+contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC721Burnable, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
 
     uint256 public totalSupply;
@@ -36,7 +38,7 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         return BASE_PRICE * (11500 ** (_baseIncreasePrice-dec)) / 10000;
     }
 
-    function mint(address to) /* todo nonRentrant */ public payable {
+    function mint(address to) nonReentrant public payable {
         require(totalSupply < 10000, "Too many Savingotchis");
         uint256 price = getBuyPrice();
         require(msg.value >= price, "Not enought matic");

@@ -1,7 +1,10 @@
 const { expect } = require("chai");
+const { ethers } = require("hardhat");
 
-describe("Greeter", function() {
-  it("Should return the new greeting once it's changed", async function() {
+let savingotchi;
+
+describe("Savingotchi", function() {
+  it("Should deploy", async function() {
     const vrfCoordFactory = await ethers.getContractFactory(
       "MockVRFCoordinator"
     );
@@ -16,11 +19,14 @@ describe("Greeter", function() {
     await chaos.deployed();
     
     const Savingotchi = await ethers.getContractFactory("Savingotchi");
-    const savingotchi = await Savingotchi.deploy();
+    savingotchi = await Savingotchi.deploy();
     await savingotchi.deployed();
 
     await savingotchi.setEvolver(chaos.address);
-/*
+
+    await chaos.transferOwnership(savingotchi.address);
+
+    /*
     expect(await savingotchi.greet()).to.equal("Hello, world!");
 
     const setGreetingTx = await savingotchi.setGreeting("Hola, mundo!");
@@ -31,4 +37,10 @@ describe("Greeter", function() {
     expect(await greeter.greet()).to.equal("Hola, mundo!");
   */
   });
+
+  it("Should buy", async function() {
+    const basePrice = await savingotchi.getBuyPrice();
+    expect(basePrice).to.equal(ethers.utils.parseEther("1"));
+    
+  })
 });
