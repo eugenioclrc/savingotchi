@@ -63,10 +63,22 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         gen[tokenId] = uint256(blockhash(block.number - 1));
   
         createVault(tokenId);
+        tokenVaults[tokenId].depositAAVE{value: price}();
         
         if (msg.value > price) {
             Address.sendValue(payable(msg.sender), msg.value - price);
         }
+    }
+
+    function earlyrelease(uint256 tokenId) external {
+        require(ownerOf(tokenId) == msg.sender, "Only owner can release a Savingotchi");
+        super._burn(tokenId);
+        
+        tokenVaults[tokenId].earlyexit(msg.sender);
+        delete tokenVaults[tokenId];
+        delete lastEvolve[tokenId];
+        delete gen[tokenId];
+        delete savingotchiType[tokenId];
     }
 
     function release(uint256 tokenId) external {
@@ -74,7 +86,7 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         require(stage(tokenId) == SavingotchiStage.ADULT, "Only adult Savingotchi can be released");
         super._burn(tokenId);
         
-        tokenVaults[tokenId].exit();
+        tokenVaults[tokenId].exit(msg.sender);
         delete tokenVaults[tokenId];
         delete lastEvolve[tokenId];
         delete gen[tokenId];
