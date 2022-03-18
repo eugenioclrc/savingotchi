@@ -3,6 +3,69 @@
 </script>
 
 <script lang="ts">
+	//import { login } from '$lib/eth.ts';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare let window: any;
+
+const ADDRESS = "0x10a27aD13Ed8662B2845E7c329FE14B8f7647f8D";
+
+import ABI from "$lib/savingotchi.abi";
+
+let contract;
+let minting = false;
+
+let value = 0;
+
+	import { ethers, utils } from 'ethers';
+import { formatEther } from "ethers/lib/utils";
+	import { onMount } from 'svelte';
+	let hasMetamask = false;
+	let connected = false;
+	let address;
+	let balance;
+	let chain;
+	let blockNumber;
+	onMount(async () => {
+		if (window.ethereum) {
+			hasMetamask = true;
+			chain = new ethers.providers.Web3Provider(window.ethereum);
+			blockNumber = await chain.getBlockNumber();
+			connected = true;
+			await requestAccounts();
+			window.ethereum.on('accountsChanged', onAccountsChanged);
+		}
+	});
+
+
+	async function onAccountsChanged(accounts) {
+		address = accounts[0];
+		balance = await chain.getBalance(address);
+		const signer = await chain.getSigner();
+
+		contract = new ethers.Contract(ADDRESS, ABI, signer);
+
+		value = await contract.getBuyPrice();
+		value = value.mul('120').div('100');
+	}
+	async function requestAccounts() {
+		if (hasMetamask) {
+			const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+			if (accounts) {
+				await onAccountsChanged(accounts);
+			}
+		}
+	}
+
+	async function mint() {
+		try {
+			minting= true;
+			await contract.mint({ value })
+		} catch (err) {
+			console.error(err);
+		}
+		minting = false;
+	}
 </script>
 
 <svelte:head>
@@ -12,21 +75,29 @@
 <section>
 	<div class="card">
 		<div class="card_header colorGradient " style="border-radius: 0; background: #ddd">
-			<img class="card_header_image ns" alt="Savingotchi" style="padding-left: 10px" src="/images/0.png">
+			<img class="card_header_image ns {minting ? 'shake' : ''}" alt="Savingotchi" style="padding-left: 10px" src="/images/0.png">
 		</div>
 		<div class="card_body">
-				<div class="price">
-					4324 MATIC
+				<div class="price" style="filter: blur({value ? 0 : 10}px)">
+					{value ? ethers.utils.formatEther(value) : 'wait...'} MATIC
 				</div>
 			<div style="display: flex; justify-content: center; align-items: center;">
 				<div style="width: 10px;"></div>
-				<button disabled="" class="button">Mint</button>
+				{#if address}
+					<button enabled={!minting} class="button" on:click={mint}>
+						{minting? 'Minting' : 'Mint'}
+					</button>
+				{/if}
 				<div style="width: 10px;"></div>
 			</div>
 			<p class="statusText">Mint your Savingotchi</p>
 		</div>
 		<div class="card_footer" style="background-color: #55143e">
-			<button class="button" style="background-color: #ca5824;">Connect Wallet</button>
+			{#if !address}
+				<button class="button" style="background-color: #ca5824;" on:click={() => login}>Connect Wallet</button>
+			{:else}
+				<span style="color:#fff">{address.slice(0, 6)}...{address.slice(-4)}</span>
+			{/if}
 		</div>
 		<a class="_90" target="_blank" href="https://polygonscan.com/address/0x0" style="position: absolute; bottom: 55px; left: -75px; color: rgb(255, 255, 255);">View Contract</a>
 	</div>
@@ -34,6 +105,28 @@
 </section>
 
 <style>
+
+img.shake {
+  /* Start the shake animation and make the animation last for 0.5 seconds */
+  animation: shake 0.5s;
+
+  /* When the animation is finished, start again */
+  animation-iteration-count: infinite;
+}
+
+@keyframes shake {
+  0% { transform: translate(1px, 1px) rotate(0deg); }
+  10% { transform: translate(-1px, -2px) rotate(-1deg); }
+  20% { transform: translate(-3px, 0px) rotate(1deg); }
+  30% { transform: translate(3px, 2px) rotate(0deg); }
+  40% { transform: translate(1px, -1px) rotate(1deg); }
+  50% { transform: translate(-1px, 2px) rotate(-1deg); }
+  60% { transform: translate(-3px, 1px) rotate(0deg); }
+  70% { transform: translate(3px, 1px) rotate(-1deg); }
+  80% { transform: translate(-1px, -1px) rotate(1deg); }
+  90% { transform: translate(1px, 2px) rotate(0deg); }
+  100% { transform: translate(1px, -2px) rotate(-1deg); }
+}
 	.price {
 				display: flex;
 				width: 100%;
