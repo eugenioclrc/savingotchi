@@ -15,8 +15,8 @@ Fee	0.0001 LINK
  */
 
 abstract contract ChaosVRFV1 is VRFConsumerBase {
-    mapping(uint256 => bool) internal onRndProcess;
-    mapping(bytes32 => uint256) internal requestIdToToken;
+    mapping(uint256 => bool) public rndOnProcess;
+    mapping(bytes32 => uint256) public requestIdToToken;
 
     bytes32 internal keyHash;
     uint256 internal fee;
@@ -41,11 +41,11 @@ abstract contract ChaosVRFV1 is VRFConsumerBase {
     // Assumes the subscription is funded sufficiently.
     function _requestRandom(uint256 _tokenId) internal {
         require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK - fill contract with faucet");
-        require(!onRndProcess[_tokenId], "A random process is running");
+        require(!rndOnProcess[_tokenId], "A random process is running");
         // Will revert if subscription is not set and funded.
         bytes32 requestId = requestRandomness(keyHash, fee);
         requestIdToToken[requestId] = _tokenId;
-        onRndProcess[_tokenId] = true;
+        rndOnProcess[_tokenId] = true;
     }
 
     /**

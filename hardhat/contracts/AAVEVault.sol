@@ -37,28 +37,13 @@ contract Vault is Ownable {
     _aMATIC.approve(address(this), type(uint).max);
     wMATIC.approve(address(this), type(uint).max);
 
-    depositAAVE();
+    //depositAAVE();
+    WETHGateway.depositETH{ value: msg.value }(
+      seeLendingPool(), // pool
+      address(this), // onBehalfOf
+      0 // referralCode
+    );
   }
-
-  /*
-  //https://docs.aave.com/developers/v/2.0/the-core-protocol/protocol-data-provider
-  function Info() public view returns(uint) {
-
-    (
-      ,//uint256 currentATokenBalance,
-      ,//uint256 currentStableDebt,
-      ,//uint256 currentVariableDebt,
-      ,//uint256 principalStableDebt,
-      ,//uint256 scaledVariableDebt,
-      ,//uint256 stableBorrowRate,
-      uint256 liquidityRate,
-      ,//,uint40 stableRateLastUpdated,
-      //,bool usageAsCollateralEnabled
-    ) = IAAVEdataProvider(0xFA3bD19110d986c5e5E9DD5F69362d05035D045B).getUserReserveData(address(wMATIC), address(this));
-
-    return liquidityRate;
-  }
-  */
 
   function exit() public onlyOwner {
     uint256 _amount = aMATIC.balanceOf(address(this));
@@ -100,9 +85,9 @@ contract Vault is Ownable {
 
   function depositAAVE() public payable {
     WETHGateway.depositETH{ value: msg.value }(
-      seeLendingPool(),
-      address(this),
-      0
+      seeLendingPool(), // pool
+      address(this), // onBehalfOf
+      0 // referralCode
     );
   }
 

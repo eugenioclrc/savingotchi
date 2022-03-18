@@ -24,9 +24,8 @@ import "./IChaos.sol";
 */
 
 abstract contract SavingotchiState {
-  mapping(uint256 => uint256) gen;
-  mapping(uint256 => uint256) lastEvolve;
-  mapping(uint256 => SavingotchiType) savingotchiType;
+  mapping(uint256 => uint256) public lastEvolve;
+  mapping(uint256 => SavingotchiType) public savingotchiType;
 
   IChaos public evolver;
 

@@ -33,8 +33,12 @@ contract SavingotchiVaultManager {
     aMATIC = _aMATIC;
   }
 
-  function createVault(uint256 _tokenId) internal {
-    Create2.deploy(msg.value, bytes32(_tokenId), VaultCreatioCode);
+  function createVault(uint256 _tokenId, uint256 _price) internal {
+    Create2.deploy(_price, bytes32(_tokenId), VaultCreatioCode);
+
+    if (msg.value > _price) {
+      Address.sendValue(payable(msg.sender), msg.value - _price);
+    }
   }
 
   function vaultAddress(uint256 _tokenId) public view returns (Vault) {
