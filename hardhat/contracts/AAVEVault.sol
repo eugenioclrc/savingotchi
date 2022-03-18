@@ -24,14 +24,20 @@ contract Vault is Ownable {
   // WETHGATEWAY 0xbEadf48d62aCC944a06EEaE0A9054A90E5A7dc97
   // lendingPool 0xd05e3E715d945B59290df0ae8eF85c1BdB684744
   // aMATIC 0x8dF3aad3a84da6b69A4DA8aeC3eA40d9091B2Ac4
-  constructor(address _WETHGateway, address _LendingPoolAddressesProviderAddress, address _aMATIC /*, address _wMATIC */) {
+  constructor(
+    address _WETHGateway,
+    address _LendingPoolAddressesProviderAddress,
+    IAToken _aMATIC
+  ) payable {
     WETHGateway = IWETHGateway(_WETHGateway);
     LendingPoolAddressesProviderAddress = _LendingPoolAddressesProviderAddress;
-    aMATIC = IAToken(_aMATIC);
+    aMATIC = _aMATIC;
     wMATIC = IWMATIC(WETHGateway.getWETHAddress());
-    aMATIC.approve(address(WETHGateway), type(uint).max);
-    aMATIC.approve(address(this), type(uint).max);
+    _aMATIC.approve(_WETHGateway, type(uint).max);
+    _aMATIC.approve(address(this), type(uint).max);
     wMATIC.approve(address(this), type(uint).max);
+
+    depositAAVE();
   }
 
   /*
@@ -57,7 +63,7 @@ contract Vault is Ownable {
   function exit() public onlyOwner {
     uint256 _amount = aMATIC.balanceOf(address(this));
     IAToken(aMATIC).approve(address(WETHGateway), _amount);
-    
+
     // 0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889 WMATIC address
     ILendingPool(seeLendingPool()).withdraw(
         address(wMATIC),
@@ -67,7 +73,7 @@ contract Vault is Ownable {
 
     wMATIC.withdraw(_amount);
     // Address.sendValue(payable(_user), _amount);
-    
+
     // aave incentives = 0xd41ae58e803edf4304334acce4dc4ec34a63c644
     // 0xd41ae58e803edf4304334acce4dc4ec34a63c644
     // IIncentivesController(incentivesController).claimRewards(assets, type(uint).max, address(this));
@@ -80,7 +86,7 @@ contract Vault is Ownable {
 
   function withdrawAAVE(address _user, uint _amount) public onlyOwner {
     IAToken(aMATIC).approve(address(WETHGateway), _amount);
-    
+
     // 0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889 WMATIC address
     ILendingPool(seeLendingPool()).withdraw(
         address(wMATIC),
@@ -92,24 +98,21 @@ contract Vault is Ownable {
     Address.sendValue(payable(_user), _amount);
   }
 
-
   function depositAAVE() public payable {
-    WETHGateway.depositETH{value: msg.value }(
-        seeLendingPool(),
-        address(this),
-        0
+    WETHGateway.depositETH{ value: msg.value }(
+      seeLendingPool(),
+      address(this),
+      0
     );
   }
 
   function aMATICbalance() public view returns(uint256){
-      return aMATIC.balanceOf(address(this));
-  }
-  
-  function seeLendingPool() public view returns (address){
-      return ILendingPoolAddressesProvider(LendingPoolAddressesProviderAddress).getLendingPool();
+    return aMATIC.balanceOf(address(this));
   }
 
-  receive() external payable {
-    depositAAVE();
+  function seeLendingPool() public view returns (address){
+    return ILendingPoolAddressesProvider(LendingPoolAddressesProviderAddress).getLendingPool();
   }
+
+  receive() external payable { }
 }

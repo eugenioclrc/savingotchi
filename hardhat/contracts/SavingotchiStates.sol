@@ -29,15 +29,15 @@ abstract contract SavingotchiState {
   mapping(uint256 => SavingotchiType) savingotchiType;
 
   IChaos public evolver;
-  
+
   string[15] internal images = [
     // 0
     '<path stroke="#000" d="M8 4h1M6 7h1M13 9h1M7 11h1" /><path stroke="#000" d="M9 4h1M10 6h1M7 7h1M10 7h1M12 7h1M5 8h1M14 9h1M8 11h1M9 15h1" /><path stroke="#000" d="M10 4h1M6 6h1M11 6h1M12 8h1M4 9h1M8 10h1M9 11h1M9 12h1M11 13h2M6 14h2M12 14h1M11 15h1" /><path stroke="#000" d="M7 5h1M11 5h1M13 8h1M7 9h1M7 10h1M14 10h1" /><path stroke="#000" d="M8 5h1M7 6h1M12 9h1M14 11h1M4 12h1M8 12h1M14 12h1M5 13h2M13 13h1M10 14h2" /><path stroke="#FFF" d="M9 5h1M8 8h1M10 8h1M9 9h1M11 11h2" /><path stroke="#FFF" d="M10 5h1M9 6h1M11 10h1M13 10h1M5 12h1" /><path stroke="#000" d="M8 6h1M5 7h1M11 8h1M4 10h1M4 11h1M12 12h1M8 15h1" /><path stroke="#000" d="M12 6h1M13 7h1" /><path stroke="#FFF" d="M8 7h1M9 8h1M5 10h1M11 12h1" /><path stroke="#FFF" d="M9 7h1M7 8h1M5 9h2M8 9h1M10 9h2M6 10h1M9 10h1M12 10h1M5 11h2M13 11h1M7 12h1M10 12h1M7 13h2M10 13h1M9 14h1" /><path stroke="#000" d="M11 7h1M7 15h1M10 15h1" /><path stroke="#FFF" d="M6 8h1M10 10h1M13 12h1" /><path stroke="#FFF" d="M10 11h1M8 14h1" /><path stroke="#FFF" d="M6 12h1M9 13h1" />',
-    // 1. Bottamon  
+    // 1. Bottamon
     '<path stroke="#000" d="M8 8h1M8 9h1M11 9h1M12 10h1M7 12h1M12 12h2M7 13h2M10 13h2" /><path stroke="#000" d="M11 8h1M10 9h1M7 10h1M9 10h1M7 11h1M11 11h2M12 13h2" /><path stroke="#000" d="M7 9h1" /><path stroke="#000" d="M9 9h1M8 11h1M10 11h1" /><path stroke="#000" d="M12 9h1M9 11h1M6 13h1" /><path stroke="#FFF" d="M8 10h1" /><path stroke="#000" d="M10 10h1M6 12h1M9 13h1" /><path stroke="#FFF" d="M11 10h1" /><path stroke="#000" d="M8 12h1M11 12h1" /><path stroke="#FFF" d="M9 12h1" /><path stroke="#FFF" d="M10 12h1" />',
     // 2. koromon
     '<path stroke="#000" d="M6 7h1M10 14h1" /><path stroke="#000" d="M7 7h1M4 10h1M11 11h1" /><path stroke="#000" d="M11 7h1M12 8h1M7 10h1M7 11h1M14 12h1M4 13h1M14 13h1M7 14h1" /><path stroke="#000" d="M12 7h1M8 8h1M10 8h1M14 10h1" /><path stroke="#000" d="M6 8h1M9 8h1M5 9h1M11 10h1M4 11h1M9 12h1M6 14h1M8 14h1M11 14h3" /><path stroke="#FFF" d="M7 8h1M7 9h1M10 10h1M7 12h2" /><path stroke="#FFF" d="M11 8h1M10 9h1M6 11h1M9 11h1M13 11h1M12 12h1M10 13h1" /><path stroke="#FFF" d="M6 9h1M8 9h1M12 9h1M6 10h1M8 10h1M5 11h1M8 11h1M10 11h1M12 11h1M5 12h2M13 12h1M5 13h1M7 13h1M9 13h1M11 13h1" /><path stroke="#FFF" d="M9 9h1M8 13h1M12 13h2" /><path stroke="#FFF" d="M11 9h1M10 12h2" /><path stroke="#000" d="M13 9h1M14 11h1M4 12h1" /><path stroke="#FFF" d="M5 10h1M12 10h2" /><path stroke="#FFF" d="M9 10h1M6 13h1" /><path stroke="#000" d="M5 14h1M9 14h1" />',
-    // 3. agumon 
+    // 3. agumon
     '<path stroke="#000" d="M7 3h1M9 3h2M4 12h1M10 13h1M9 15h1M4 17h1" /><path stroke="#000" d="M8 3h1M6 4h1M9 5h1M4 6h1M2 7h1M8 7h1M10 7h1M4 8h2M14 8h1M11 11h1M14 12h1M5 13h1M14 13h1M4 15h1M6 17h2M10 17h2" /><path stroke="#000" d="M11 3h1M13 5h1M5 10h1M5 11h1M12 13h1M12 14h1M8 15h1M5 16h1" /><path stroke="#FFF" d="M7 4h1M3 7h1M13 9h1M11 12h1" /><path stroke="#FFF" d="M8 4h1M11 5h1M10 8h1M4 9h1M9 12h1M6 16h1" /><path stroke="#FFF" d="M9 4h2M11 6h1M13 7h1M5 9h1M7 9h1M9 9h3M10 11h1M12 11h1" /><path stroke="#FFF" d="M11 4h1M10 5h1M6 6h1M8 6h1M4 7h1M6 7h1M12 7h1M6 8h2M11 8h3M6 9h1M5 12h1M12 12h1M9 13h1M13 13h1M9 14h2M14 14h1M6 15h1M12 15h3M11 16h1" /><path stroke="#000" d="M12 4h1M5 5h1M9 6h1M13 6h1M2 8h1M6 10h1M10 15h1M15 15h1M3 16h1" /><path stroke="#000" d="M6 5h1M3 6h1M3 9h1M7 10h1M13 11h1M6 12h1M4 13h1M8 17h1M13 17h1M15 17h1" /><path stroke="#FFF" d="M7 5h1M8 9h1" /><path stroke="#000" d="M8 5h1M10 6h1M9 7h1M14 7h1M3 8h1M14 9h1M4 10h1M13 10h1M10 12h1M6 13h1M11 13h1M15 14h1M5 15h1M10 16h1M12 16h1M14 16h1M16 16h1M5 17h1M12 17h1M14 17h1" /><path stroke="#FFF" d="M12 5h1M12 6h1M12 10h1M9 11h1M8 12h1M13 12h1M7 13h1M8 14h1M11 14h1M7 15h1M7 16h1M15 16h1" /><path stroke="#FFF" d="M5 6h1M7 6h1M7 7h1M11 7h1M9 8h1M9 10h1M7 11h2M7 12h1M13 14h1M13 16h1" /><path stroke="#FFF" d="M5 7h1M8 8h1M12 9h1M10 10h2M8 13h1M4 16h1" /><path stroke="#000" d="M8 10h1M6 11h1M6 14h1M11 15h1M3 17h1" /><path stroke="#000" d="M7 14h1M8 16h1M16 17h1" />',
 
     // 4. betamon
@@ -55,10 +55,10 @@ abstract contract SavingotchiState {
     '<path stroke="#000" d="M7 2h1M9 2h1M11 2h1M5 3h1M13 3h1M8 4h1M3 5h1M7 5h2M12 5h1M14 6h1M2 7h1M6 7h1M8 7h1M13 7h1M10 8h1M14 8h1M9 9h1M8 10h1M14 11h1M12 13h1M6 14h1M13 14h2M17 14h1M17 15h1M7 16h1M8 17h1M11 17h1M13 17h1" /><path stroke="#000" d="M8 2h1M12 3h1M14 5h2M7 7h1M15 7h1M7 9h1M14 9h1M13 10h1M6 13h1M15 13h1M9 16h1" /><path stroke="#000" d="M10 2h1M15 4h1M11 7h2M9 10h1M8 13h1" /><path stroke="#000" d="M6 3h1M15 3h1M16 5h1M11 16h1M13 16h1M12 17h1" /><path stroke="#FFF" d="M7 3h1M12 4h2M5 5h1M4 6h1M13 6h1M9 7h1M15 12h1M11 15h1M15 15h1" /><path stroke="#FFF" d="M8 3h1M10 3h2M5 4h3M11 4h1M10 5h1M11 6h1M6 8h1M11 9h1M13 9h1M10 10h1M9 11h2M12 11h1M7 13h1M9 13h3M14 13h1M12 14h1M16 14h1M14 15h1M16 15h1M8 16h1M14 16h1" /><path stroke="#FFF" d="M9 3h1M10 4h1M4 5h1M9 5h1M11 5h1M5 6h2M9 6h2M11 8h1M12 10h1M11 11h1M16 13h1M10 14h2M7 15h1M9 15h1" /><path stroke="#000" d="M14 3h1M4 4h1M3 7h3M8 11h1M9 12h1M14 12h1M16 12h1M7 14h1M15 14h1M14 17h1" /><path stroke="#000" d="M16 3h1M6 9h1M8 9h1M9 17h2" /><path stroke="#000" d="M9 4h1M14 7h1M3 8h1M4 9h1M7 11h1M13 11h1M15 11h1M7 12h1M12 12h1M9 14h1M8 15h1M16 16h1M15 17h1" /><path stroke="#FFF" d="M14 4h1M12 6h1M10 7h1M5 8h1M7 8h3M12 8h1M10 9h1M12 9h1M12 15h2M10 16h1" /><path stroke="#FFF" d="M6 5h1M13 8h1M8 12h1M8 14h1" /><path stroke="#000" d="M13 5h1M2 6h1M5 9h1M17 13h1M6 15h1M10 15h1" /><path stroke="#FFF" d="M3 6h1M11 10h1M11 12h1" /><path stroke="#FFF" d="M7 6h1M10 12h1M13 12h1M13 13h1M12 16h1M15 16h1" /><path stroke="#FFF" d="M8 6h1M4 8h1" />',
     // 11.numemon
     '<path stroke="#000" d="M3 2h1M5 3h1M7 3h1M6 6h1M6 8h1M5 10h1M11 16h1" /><path stroke="#000" d="M5 2h1M11 4h2M12 5h1M5 6h1M5 7h1M14 12h1M5 16h1M12 16h2" /><path stroke="#000" d="M7 2h1M14 2h1M12 6h2M11 8h1M12 10h1M15 12h1M8 13h1M10 13h1M7 16h1" /><path stroke="#000" d="M10 2h1M3 4h1M10 4h1M7 6h1M11 6h1M8 9h2M16 13h1M3 14h1M15 15h1" /><path stroke="#000" d="M12 2h1M10 3h1M12 3h1M14 3h1M6 4h1M5 5h1M14 6h1M12 7h1M5 9h1M10 9h1M8 10h2M5 11h1M13 11h1M5 12h1M4 13h1M7 13h1M17 14h1M4 15h1M14 15h1M16 15h1M6 16h1M9 16h1" /><path stroke="#000" d="M3 3h1M14 4h1M3 5h1M10 5h1M4 6h1M7 9h1M11 9h1M10 16h1" /><path stroke="#000" d="M4 4h1M7 4h1M13 4h1M7 5h1M3 6h1M10 6h1M9 13h1M8 16h1" /><path stroke="#000" d="M5 4h1M14 5h1" /><path stroke="#FFF" d="M4 5h1M11 5h1M13 5h1M7 11h4M6 12h1M8 12h1M11 13h1M15 13h1M4 14h3M8 14h1M11 14h2M14 14h2M5 15h1M8 15h1M11 15h1M13 15h1" /><path stroke="#FFF" d="M6 5h1M11 10h1M11 11h1M9 15h1" /><path stroke="#FFF" d="M6 9h1M6 13h1M14 13h1M7 14h1" /><path stroke="#FFF" d="M6 10h1M12 11h1M7 12h1M9 12h1M11 12h2M9 14h1M7 15h1" /><path stroke="#FFF" d="M7 10h1M10 10h1M6 11h1M13 12h1M13 14h1" /><path stroke="#FFF" d="M10 12h1M10 14h1M16 14h1M6 15h1M10 15h1M12 15h1" /><path stroke="#FFF" d="M5 13h1M12 13h1" /><path stroke="#FFF" d="M13 13h1" />',
-    
+
     // 8. meramon
     '<path stroke="#000" d="M4 2h1M10 2h1M6 4h1M11 4h1M13 4h1M7 7h1M2 8h1M5 8h1M14 8h1M17 8h1M3 9h1M2 11h1M10 11h1M6 13h1M3 14h1M13 14h1M10 15h1M15 15h1M3 16h1M8 16h1M16 16h1M5 17h2" /><path stroke="#000" d="M7 2h1M15 2h1M6 3h1M4 4h1M15 4h1M8 7h1M15 7h1M8 8h1M11 8h1M5 9h1M17 9h1M7 11h1M9 11h1M17 11h1M3 13h1" /><path stroke="#000" d="M9 2h1M12 2h1M11 3h1M13 3h2M4 5h1M7 6h1M12 6h1M2 9h1M11 11h1M16 13h1M6 14h1M16 14h1M11 16h1M4 17h1M15 17h1" /><path stroke="#000" d="M4 3h1M15 6h1M16 9h1M16 12h1M3 17h1M7 17h1" /><path stroke="#000" d="M5 3h1M4 7h1M12 7h1M13 17h1M16 17h1" /><path stroke="#FFF" d="M7 3h1M12 4h1M14 4h1M9 5h1M14 5h1M8 6h2M13 8h1M7 9h1M9 10h2M10 14h1M8 15h1M6 16h1M15 16h1" /><path stroke="#000" d="M8 3h1M15 3h1M8 4h1M4 6h1M14 9h1M2 10h1M13 10h1M15 10h1M17 10h1M8 11h1M12 11h1M4 15h2M9 15h1" /><path stroke="#FFF" d="M9 3h1M9 7h1M14 7h1M10 8h1M6 9h1M8 10h1M12 10h1M12 12h1M7 14h1M6 15h1M12 16h1" /><path stroke="#FFF" d="M10 3h1M12 3h1M5 4h1M9 4h2M7 5h1M10 5h3M6 6h1M10 6h1M14 6h1M5 7h2M13 7h1M6 8h1M12 8h1M9 9h1M12 9h2M3 10h1M14 10h1M16 10h1M3 11h1M6 11h1M13 11h1M15 11h2M4 12h1M8 12h3M13 12h1M15 12h1M4 13h1M7 13h2M10 13h1M15 13h1M5 14h1M9 14h1M11 14h1M14 14h2M7 15h1M11 15h1M4 16h2M7 16h1" /><path stroke="#FFF" d="M7 4h1M5 5h1M8 5h1M13 5h1M11 6h1M10 7h1M10 9h1M5 10h1M7 10h1M11 10h1M5 11h1M14 12h1M9 13h1M12 13h1M4 14h1M12 14h1M13 16h2" /><path stroke="#FFF" d="M6 5h1M5 6h1M13 6h1M7 8h1M5 12h1M11 12h1M8 14h1" /><path stroke="#000" d="M15 5h1M11 7h1M4 10h1M6 10h1M3 12h1M14 13h1M12 17h1M14 17h1" /><path stroke="#FFF" d="M9 8h1M11 9h1M7 12h1M11 13h1M12 15h1" /><path stroke="#FFF" d="M8 9h1M14 11h1M13 15h1" /><path stroke="#FFF" d="M4 11h1M6 12h1" /><path stroke="#000" d="M5 13h1M13 13h1M14 15h1" />',
-    
+
     // 12.metal_greymon
     '<path stroke="#000" d="M7 2h1M12 3h1M13 13h1M17 13h1M11 14h2M11 16h1M17 16h1M3 17h1" /><path stroke="#000" d="M8 2h1M14 2h2M2 3h1M13 3h1M16 3h1M5 4h2M10 4h1M2 5h2M2 6h1M12 6h1M14 6h1M2 7h2M12 7h1M3 8h1M6 9h2M17 9h1M13 10h1M15 10h1M9 11h1M17 11h1M3 13h1M14 13h2M6 15h1M4 16h1M9 16h2M15 16h1M7 17h2M12 17h1M15 17h1" /><path stroke="#000" d="M9 2h1M11 2h1M2 4h1M9 5h1M11 6h1M6 7h1M9 8h1M4 9h1M8 12h1M11 12h1M16 13h1M12 15h1M2 16h1M6 17h1" /><path stroke="#000" d="M10 2h1M16 2h1M8 4h1M5 9h1M17 12h1M16 15h1" /><path stroke="#000" d="M3 3h1M15 4h1M4 5h1M7 5h1M13 5h2M7 7h1M13 8h1M8 9h1M13 9h1M4 11h1M14 11h2M3 12h1M8 13h1M10 14h1M3 15h1M2 17h1M4 17h1M13 17h1M17 17h1" /><path stroke="#000" d="M6 3h1M9 4h1M16 5h1M5 7h1M8 8h1M17 8h1M6 10h1M11 10h1M14 12h1M5 13h1M11 13h1M4 14h2M9 14h1M8 16h1M5 17h1" /><path stroke="#FFF" d="M7 3h1M13 4h1M11 5h1M8 7h1M9 10h1M8 11h1M11 11h2M4 12h1M7 13h1M14 15h1" /><path stroke="#FFF" d="M8 3h1M10 3h1M11 4h1M5 6h1M7 6h1M15 6h1M15 7h1M12 9h1M12 10h1M6 11h1M16 12h1M9 13h1M15 14h1M8 15h2M11 15h1M16 16h1" /><path stroke="#FFF" d="M9 3h1M11 3h1M14 3h1M7 4h1M5 5h1M10 5h1M12 5h1M3 6h2M6 6h1M9 6h2M13 6h1M11 7h1M13 7h1M4 8h2M7 8h1M10 8h1M12 8h1M14 8h3M9 9h1M14 9h2M14 10h1M16 10h1M13 11h1M16 11h1M6 12h1M9 12h2M12 12h1M6 13h1M7 14h1M16 14h1M5 15h1M13 15h1M3 16h1M5 16h2M14 16h1" /><path stroke="#FFF" d="M15 3h1M3 4h1M15 5h1M9 7h1M16 9h1M7 10h1M13 12h1M4 13h1M10 13h1M6 14h1M8 14h1M10 15h1M15 15h1M12 16h1" /><path stroke="#000" d="M4 4h1M10 7h1M17 10h1M15 12h1M14 17h1" /><path stroke="#FFF" d="M12 4h1M8 5h1M11 8h1M10 10h1M13 14h1M7 15h1" /><path stroke="#FFF" d="M14 4h1" /><path stroke="#FFF" d="M6 5h1M8 6h1M6 8h1M11 9h1M12 13h1" /><path stroke="#000" d="M16 6h1M4 7h1M14 7h1M16 7h1M5 11h1M10 11h1M5 12h1M14 14h1M17 14h1M4 15h1M7 16h1M13 16h1M16 17h1" /><path stroke="#FFF" d="M10 9h1M8 10h1M7 11h1M7 12h1" />',
     // 13.mamemon
@@ -109,14 +109,7 @@ abstract contract SavingotchiState {
     return SavingotchiStage.ADULT;
   }
 
-  /*
-  function getRandom() internal view returns (uint256) {
-    return uint256(keccak256(abi.encodePacked(block.timestamp)));
-  }
-  */
-
-  function evolveStep2(uint256 tokenId, uint256 rnd) external {
-    require(msg.sender == address(evolver), "only chaos can evolve a savingotchi");
+  function _evolve(uint256 tokenId, uint256 rnd) internal {
     if (savingotchiType[tokenId] == SavingotchiType.EGG) {
       savingotchiType[tokenId] = SavingotchiType.BOTAMON;
     } else if(savingotchiType[tokenId] == SavingotchiType.BOTAMON) {
@@ -159,14 +152,5 @@ abstract contract SavingotchiState {
         savingotchiType[tokenId] = SavingotchiType.TEDDYMON;
       }
     }
-  }
-    
-  function _evolve(uint256 tokenId) internal {
-    require(stage(tokenId) != SavingotchiStage.ADULT, "Cannot evolve an adult Savingotchi");
-    evolver.requestRandomWords(tokenId);
-
-    /*
-    _evolveStep2(getRandom());
-    */
   }
 }
