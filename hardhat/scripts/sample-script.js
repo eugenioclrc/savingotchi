@@ -6,20 +6,38 @@
 const hre = require("hardhat");
 
 async function main() {
-  // Hardhat always runs the compile task when running scripts with its command
-  // line interface.
-  //
-  // If this script is run directly using `node` you may want to call compile 
-  // manually to make sure everything is compiled
-  // await hre.run('compile');
+  const { expect } = require("chai");
+  const { ethers, network } = require("hardhat");
+  
+  let savingotchi;
+  
+      const [signer] = await ethers.getSigners();
+      
+  
+      const Chaos = await ethers.getContractFactory("Chaos");
+      const chaos = await Chaos.deploy();
+      await chaos.deployed();
+  
+      const Savingotchi = await ethers.getContractFactory("Savingotchi");
+      savingotchi = await Savingotchi.deploy();
+      await savingotchi.deployed();
+  
+      await savingotchi.setEvolver(chaos.address);
+  
+      await chaos.transferOwnership(savingotchi.address);
+  
+      const TOKEN_ABI = [
+        'function transfer(address to, uint amount)',
+      ];
+      const tokenLink = new ethers.Contract('0x326C977E6efc84E512bB9C30f76E30c160eD06FB', TOKEN_ABI);
+  
+      // fund chaos with link;
+      await tokenLink.connect(signer).transfer(chaos.address, ethers.utils.parseEther('1'));
+  
+      console.log("chaos", chaos.address);
+      console.log("savingotchi", savingotchi.address);
+  //      const basePrice = await savingotchi.getBuyPrice();
 
-  // We get the contract to deploy
-  const Greeter = await hre.ethers.getContractFactory("Greeter");
-  const greeter = await Greeter.deploy("Hello, Hardhat!");
-
-  await greeter.deployed();
-
-  console.log("Greeter deployed to:", greeter.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

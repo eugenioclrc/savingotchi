@@ -2,16 +2,19 @@
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "@openzeppelin/contracts/utils/Base64.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
+
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 import "./SavingotchiStates.sol";
 import "./SavingotchiVaultManager.sol";
 
-contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC721URIStorage, ERC721Burnable, Ownable {
+contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC721Burnable, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
 
     uint256 public totalSupply;
@@ -21,7 +24,11 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
 
     Counters.Counter private _tokenIdCounter;
 
-    constructor(address _vault) SavingotchiVaultManager(_vault) ERC721("Savingotchi", "GMI") {
+    constructor() SavingotchiState() SavingotchiVaultManager (/* _vault*/) ERC721("Savingotchi", "GMI") {
+    }
+
+    function setEvolver(address evolver_) onlyOwner external {
+        evolver = IChaos(evolver_);
     }
 
     function getBuyPrice() public view returns(uint256) {
@@ -33,7 +40,7 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         return BASE_PRICE * (11500 ** (_baseIncreasePrice-dec)) / 10000;
     }
 
-    function mint(address to, string memory uri) /* todo nonRentrant */ public payable {
+    function mint() nonReentrant public payable {
         require(totalSupply < 10000, "Too many Savingotchis");
         uint256 price = getBuyPrice();
         require(msg.value >= price, "Not enought matic");
@@ -50,20 +57,31 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         
         uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
-        _safeMint(to, tokenId);
-        _setTokenURI(tokenId, uri);
+        _safeMint(msg.sender, tokenId);
         totalSupply++;
         
         lastEvolve[tokenId] = block.timestamp;
         savingotchiType[tokenId] = SavingotchiType.EGG;
         gen[tokenId] = uint256(blockhash(block.number - 1));
   
-
         createVault(tokenId);
+        tvl[tokenId] = msg.value;
         
         if (msg.value > price) {
             Address.sendValue(payable(msg.sender), msg.value - price);
         }
+    }
+
+    function earlyrelease(uint256 tokenId) external {
+        require(ownerOf(tokenId) == msg.sender, "Only owner can release a Savingotchi");
+        super._burn(tokenId);
+        
+        tokenVaults[tokenId].earlyexit(msg.sender);
+        delete tokenVaults[tokenId];
+        delete lastEvolve[tokenId];
+        delete gen[tokenId];
+        delete savingotchiType[tokenId];
+        delete tvl[tokenId];
     }
 
     function release(uint256 tokenId) external {
@@ -71,14 +89,15 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         require(stage(tokenId) == SavingotchiStage.ADULT, "Only adult Savingotchi can be released");
         super._burn(tokenId);
         
-        tokenVaults[tokenId].exit();
+        tokenVaults[tokenId].exit(msg.sender);
         delete tokenVaults[tokenId];
         delete lastEvolve[tokenId];
         delete gen[tokenId];
         delete savingotchiType[tokenId];
+        delete tvl[tokenId];
     }
 
-    function evolve(uint256 tokenId)  external payable {
+    function evolve(uint256 tokenId) external payable {
         require(ownerOf(tokenId) == msg.sender, "Only owner can evolve a Savingotchi");
         require(lastEvolve[tokenId] > (block.timestamp + 7 days), "Can't evolve yet");
         // free evolve
@@ -87,6 +106,7 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         } else {
             uint256 _evolvePrice = evolvePrice(tokenId);
             require(msg.value >= _evolvePrice, "Not enought matic");
+            tvl[tokenId] += msg.value;
             // comprar link para tirar el random
             _evolve(tokenId);
             tokenVaults[tokenId].depositAAVE{value: msg.value}();
@@ -107,7 +127,7 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
 
     // The following functions are overrides required by Solidity.
 
-    function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
+    function _burn(uint256 tokenId) internal override(ERC721) {
         totalSupply--;
         super._burn(tokenId);
     }
@@ -115,9 +135,66 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
     function tokenURI(uint256 tokenId)
         public
         view
-        override(ERC721, ERC721URIStorage)
+        override(ERC721)
         returns (string memory)
     {
-        return super.tokenURI(tokenId);
+        
+        return string(
+            abi.encodePacked(
+                "data:application/json;base64,",
+                Base64.encode(
+                    bytes(
+                      abi.encodePacked(
+                        "{\"name\":\"",
+                        names[uint256(savingotchiType[tokenId])], // You can add whatever name here
+                        "\", \"image\":\"",
+                        genImage(tokenId),
+                        "\",\"attributes\": [",
+                        "{\"trait_type\": \"Stage\",\"value\":\"",
+                        _stages[uint256(stage(tokenId))],"\"},",
+                        "{\"trait_type\": \"number\",\"value\":",
+                        Strings.toString(tvl[tokenId]),"}",
+                        "]}"
+                      )
+                    )
+                )
+            )
+        );
+    }
+
+    function uint8ToHexCharCode(uint8 i) public pure returns (uint8) {
+        return (i > 9) ?
+            (i + 87) : // ascii a-f
+            (i + 48); // ascii 0-9
+    }
+
+
+    function uint24ToHexStr(uint24 i) internal pure returns (string memory) {
+        bytes memory o = new bytes(6);
+        uint24 mask = 0x00000f; // hex 15
+        uint k = 6;
+        do {
+            k--;
+            o[k] = bytes1(uint8ToHexCharCode(uint8(i & mask)));
+            i >>= 4;
+        } while (k > 0);
+        return string(o);
+    }
+
+    function genImage(uint256 tokenId) public view returns (string memory) {
+        return string(
+            abi.encodePacked(
+                "data:image/svg+xml;base64,",
+                Base64.encode(
+                    bytes(
+                      abi.encodePacked(
+                          "<svg width=\"500\" height=\"500\" xmlns=\"http://www.w3.org/2000/svg\" style=\"background-color:",
+                          uint24ToHexStr(uint24(gen[tokenId])),"\"><image style=\"image-rendering:pixelated\" href=\"",
+                          images[uint256(savingotchiType[tokenId])],"\" height=\"500\" width=\"500\"/></svg>"
+                      )
+                    )
+                )
+            )
+        );
     }
 }
