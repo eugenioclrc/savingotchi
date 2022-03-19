@@ -6,6 +6,8 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "@openzeppelin/contracts/utils/Base64.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
@@ -63,7 +65,7 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         gen[tokenId] = uint256(blockhash(block.number - 1));
   
         createVault(tokenId);
-        tokenVaults[tokenId].depositAAVE{value: price}();
+        tvl[tokenId] = msg.value;
         
         if (msg.value > price) {
             Address.sendValue(payable(msg.sender), msg.value - price);
@@ -79,6 +81,7 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         delete lastEvolve[tokenId];
         delete gen[tokenId];
         delete savingotchiType[tokenId];
+        delete tvl[tokenId];
     }
 
     function release(uint256 tokenId) external {
@@ -91,6 +94,7 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         delete lastEvolve[tokenId];
         delete gen[tokenId];
         delete savingotchiType[tokenId];
+        delete tvl[tokenId];
     }
 
     function evolve(uint256 tokenId) external payable {
@@ -102,6 +106,7 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         } else {
             uint256 _evolvePrice = evolvePrice(tokenId);
             require(msg.value >= _evolvePrice, "Not enought matic");
+            tvl[tokenId] += msg.value;
             // comprar link para tirar el random
             _evolve(tokenId);
             tokenVaults[tokenId].depositAAVE{value: msg.value}();
@@ -133,6 +138,63 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         override(ERC721)
         returns (string memory)
     {
-        return super.tokenURI(tokenId);
+        
+        return string(
+            abi.encodePacked(
+                "data:application/json;base64,",
+                Base64.encode(
+                    bytes(
+                      abi.encodePacked(
+                        "{\"name\":\"",
+                        names[uint256(savingotchiType[tokenId])], // You can add whatever name here
+                        "\", \"image\":\"",
+                        genImage(tokenId),
+                        "\",\"attributes\": [",
+                        "{\"trait_type\": \"Stage\",\"value\":\"",
+                        _stages[uint256(stage(tokenId))],"\"},",
+                        "{\"trait_type\": \"number\",\"value\":",
+                        Strings.toString(tvl[tokenId]),"}",
+                        "]}"
+                      )
+                    )
+                )
+            )
+        );
+    }
+
+    function uint8ToHexCharCode(uint8 i) public pure returns (uint8) {
+        return (i > 9) ?
+            (i + 87) : // ascii a-f
+            (i + 48); // ascii 0-9
+    }
+
+
+    function uint24ToHexStr(uint24 i) internal pure returns (string memory) {
+        bytes memory o = new bytes(6);
+        uint24 mask = 0x00000f; // hex 15
+        uint k = 6;
+        do {
+            k--;
+            o[k] = bytes1(uint8ToHexCharCode(uint8(i & mask)));
+            i >>= 4;
+        } while (k > 0);
+        return string(o);
+    }
+
+    function genImage(uint256 tokenId) public view returns (string memory) {
+        return string(
+            abi.encodePacked(
+                "data:image/svg+xml;base64,",
+                Base64.encode(
+                    bytes(
+                      abi.encodePacked(
+                          "<svg width=\"500\" height=\"500\" xmlns=\"http://www.w3.org/2000/svg\" style=\"background-color:",
+                          uint24ToHexStr(uint24(gen[tokenId])),"\"><image style=\"image-rendering:pixelated\" href=\"",
+                          images[uint256(savingotchiType[tokenId])],"\" height=\"500\" width=\"500\"/></svg>"
+                      )
+                    )
+                )
+            )
+        );
     }
 }

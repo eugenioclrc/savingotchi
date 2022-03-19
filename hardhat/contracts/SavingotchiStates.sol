@@ -24,60 +24,75 @@ import "./IChaos.sol";
 */
 
 abstract contract SavingotchiState {
-  mapping(uint256 => uint256) gen;
-  mapping(uint256 => uint256) lastEvolve;
-  mapping(uint256 => SavingotchiType) savingotchiType;
+  mapping(uint256 => uint256) internal gen;
+  mapping(uint256 => uint256) internal lastEvolve;
+  mapping(uint256 => uint256) internal tvl;
+  mapping(uint256 => SavingotchiType) internal savingotchiType;
 
   IChaos public evolver;
 //   <svg width="200" height="200"
 //   xmlns="http://www.w3.org/2000/svg">
 //   <image href="mdn_logo_only_color.png" height="200" width="200"/>
 // </svg>
+  string[] internal _stages = [
+    'EGG',
+    'BABY',
+    'PUPPY',
+    'ADOLESCENCE',// KID ?
+    'ADULT'
+  ];
+  string[15] internal names = [
+    'Egg', 'Bottamon', 'Koromon', 'Agumon', 
+    'Betamon', 'Greymon', 'Tyranomon', 'Darkmon',
+    'Airdramon', 'Seadramon', 'Numemon', 'Meramon',
+    'Metal Greymon', 'Mamemon', 'Teddymon'
+  ];
+
   string[15] internal images = [
     // 0
-    'ipfs://QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/0.png',
+    'https://gateway.pinata.cloud/ipfs/QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/0.png',
 
     // 1. Bottamon  
-    'ipfs://QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/1.botamon.png',
+    'https://gateway.pinata.cloud/ipfs/QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/1.botamon.png',
 
     // 2. koromon
-    'ipfs://QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/2.koromon.png',
+    'https://gateway.pinata.cloud/ipfs/QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/2.koromon.png',
 
     // 3. agumon 
-    'ipfs://QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/3.agumon.png',
+    'https://gateway.pinata.cloud/ipfs/QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/3.agumon.png',
     
     // 4. betamon
-    'ipfs://QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/4.betamon.png',
+    'https://gateway.pinata.cloud/ipfs/QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/4.betamon.png',
     
     // 5. greyon
-    'ipfs://QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/5.greymon.png',
+    'https://gateway.pinata.cloud/ipfs/QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/5.greymon.png',
 
     // 6. tyranomon
-    'ipfs://QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/6.tyranomon.png',
+    'https://gateway.pinata.cloud/ipfs/QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/6.tyranomon.png',
 
     // 7. darkmon
-    'ipfs://QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/7.darkmon.png',
+    'https://gateway.pinata.cloud/ipfs/QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/7.darkmon.png',
 
     // 9.airdramon
-    'ipfs://QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/9.airdramon.png',
+    'https://gateway.pinata.cloud/ipfs/QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/9.airdramon.png',
 
     // 10.seadramon
-    'ipfs://QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/10.seadramon.png',
+    'https://gateway.pinata.cloud/ipfs/QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/10.seadramon.png',
     
     // 11.numemon
-    'ipfs://QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/11.numemon.png',
+    'https://gateway.pinata.cloud/ipfs/QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/11.numemon.png',
     
     // 8. meramon
-    'ipfs://QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/8.meramon.png',
+    'https://gateway.pinata.cloud/ipfs/QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/8.meramon.png',
     
     // 12.metal_greymon
-    'ipfs://QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/13.metal_greymon.png',
+    'https://gateway.pinata.cloud/ipfs/QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/13.metal_greymon.png',
     
     // 13.mamemon
-    'ipfs://QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/14.mamemon.png',
+    'https://gateway.pinata.cloud/ipfs/QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/14.mamemon.png',
 
     // 14. Teddymon
-    'ipfs://QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/15.teddymon.png'
+    'https://gateway.pinata.cloud/ipfs/QmTZ4MDs6LZQU1QsnHmRCrz1t1RneXbYnzTG9DuFKRZgtC/15.teddymon.png'
   ];
 
   enum SavingotchiStage {

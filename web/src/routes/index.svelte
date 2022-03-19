@@ -3,6 +3,7 @@
 </script>
 
 <script lang="ts">
+	import {address, contract} from '$lib/stores';
 	//import { login } from '$lib/eth.ts';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -12,17 +13,14 @@ const ADDRESS = "0x10a27aD13Ed8662B2845E7c329FE14B8f7647f8D";
 
 import ABI from "$lib/savingotchi.abi";
 
-let contract;
 let minting = false;
 
 let value = 0;
 
 	import { ethers, utils } from 'ethers';
-import { formatEther } from "ethers/lib/utils";
 	import { onMount } from 'svelte';
 	let hasMetamask = false;
 	let connected = false;
-	let address;
 	let balance;
 	let chain;
 	let blockNumber;
@@ -39,13 +37,13 @@ import { formatEther } from "ethers/lib/utils";
 
 
 	async function onAccountsChanged(accounts) {
-		address = accounts[0];
-		balance = await chain.getBalance(address);
+		$address = accounts[0];
+		balance = await chain.getBalance($address);
 		const signer = await chain.getSigner();
 
-		contract = new ethers.Contract(ADDRESS, ABI, signer);
+		$contract = new ethers.Contract(ADDRESS, ABI, signer);
 
-		value = await contract.getBuyPrice();
+		value = await $contract.getBuyPrice();
 		value = value.mul('120').div('100');
 	}
 	async function requestAccounts() {
@@ -60,7 +58,7 @@ import { formatEther } from "ethers/lib/utils";
 	async function mint() {
 		try {
 			minting= true;
-			await contract.mint({ value })
+			await $contract.mint({ value })
 		} catch (err) {
 			console.error(err);
 		}
@@ -83,7 +81,7 @@ import { formatEther } from "ethers/lib/utils";
 				</div>
 			<div style="display: flex; justify-content: center; align-items: center;">
 				<div style="width: 10px;"></div>
-				{#if address}
+				{#if $address}
 					<button enabled={!minting} class="button" on:click={mint}>
 						{minting? 'Minting' : 'Mint'}
 					</button>
@@ -93,10 +91,10 @@ import { formatEther } from "ethers/lib/utils";
 			<p class="statusText">Mint your Savingotchi</p>
 		</div>
 		<div class="card_footer" style="background-color: #55143e">
-			{#if !address}
+			{#if !$address}
 				<button class="button" style="background-color: #ca5824;" on:click={() => login}>Connect Wallet</button>
 			{:else}
-				<span style="color:#fff">{address.slice(0, 6)}...{address.slice(-4)}</span>
+				<span style="color:#fff">{$address.slice(0, 6)}...{$address.slice(-4)}</span>
 			{/if}
 		</div>
 		<a class="_90" target="_blank" href="https://polygonscan.com/address/0x0" style="position: absolute; bottom: 55px; left: -75px; color: rgb(255, 255, 255);">View Contract</a>
