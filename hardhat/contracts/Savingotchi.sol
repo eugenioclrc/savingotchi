@@ -67,9 +67,9 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         createVault(tokenId);
         tvl[tokenId] = msg.value;
         
-        if (msg.value > price) {
-            Address.sendValue(payable(msg.sender), msg.value - price);
-        }
+        // if (msg.value > price) {
+        //     Address.sendValue(payable(msg.sender), msg.value - price);
+        // }
     }
 
     function earlyrelease(uint256 tokenId) external {
@@ -189,7 +189,9 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
                     bytes(
                       abi.encodePacked(
                           "<svg width=\"500\" height=\"500\" xmlns=\"http://www.w3.org/2000/svg\" style=\"background-color:",
-                          uint24ToHexStr(uint24(gen[tokenId])),"\"><image style=\"image-rendering:pixelated\" href=\"",
+                          //uint24ToHexStr(uint24(gen[tokenId])),
+                          "#ffffff",
+                          "\"><image style=\"image-rendering:pixelated\" href=\"",
                           images[uint256(savingotchiType[tokenId])],"\" height=\"500\" width=\"500\"/></svg>"
                       )
                     )
