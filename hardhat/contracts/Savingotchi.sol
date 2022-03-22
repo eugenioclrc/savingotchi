@@ -3,6 +3,7 @@ pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
@@ -14,10 +15,9 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./SavingotchiStates.sol";
 import "./SavingotchiVaultManager.sol";
 
-contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC721Burnable, Ownable, ReentrancyGuard {
+contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC721Enumerable, ERC721Burnable, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
 
-    uint256 public totalSupply;
     uint256 public lastBuy;
     uint256 public BASE_PRICE = 1 ether;
     uint256 private _baseIncreasePrice = 0;
@@ -41,7 +41,7 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
     }
 
     function mint() nonReentrant public payable {
-        require(totalSupply < 10000, "Too many Savingotchis");
+        require(totalSupply() < 10000, "Too many Savingotchis");
         uint256 price = getBuyPrice();
         require(msg.value >= price, "Not enought matic");
         // update base increase
@@ -58,14 +58,12 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
         _safeMint(msg.sender, tokenId);
-        totalSupply++;
         
         lastEvolve[tokenId] = block.timestamp;
         savingotchiType[tokenId] = SavingotchiType.EGG;
         gen[tokenId] = uint256(blockhash(block.number - 1));
   
         createVault(tokenId);
-        tvl[tokenId] = msg.value;
         
         // if (msg.value > price) {
         //     Address.sendValue(payable(msg.sender), msg.value - price);
@@ -81,7 +79,6 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         delete lastEvolve[tokenId];
         delete gen[tokenId];
         delete savingotchiType[tokenId];
-        delete tvl[tokenId];
     }
 
     function release(uint256 tokenId) external {
@@ -94,7 +91,6 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         delete lastEvolve[tokenId];
         delete gen[tokenId];
         delete savingotchiType[tokenId];
-        delete tvl[tokenId];
     }
 
     function evolve(uint256 tokenId) external payable {
@@ -106,7 +102,6 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         } else {
             uint256 _evolvePrice = evolvePrice(tokenId);
             require(msg.value >= _evolvePrice, "Not enought matic");
-            tvl[tokenId] += msg.value;
             // comprar link para tirar el random
             _evolve(tokenId);
             tokenVaults[tokenId].depositAAVE{value: msg.value}();
@@ -128,7 +123,6 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
     // The following functions are overrides required by Solidity.
 
     function _burn(uint256 tokenId) internal override(ERC721) {
-        totalSupply--;
         super._burn(tokenId);
     }
 
@@ -153,7 +147,7 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
                         "{\"trait_type\": \"Stage\",\"value\":\"",
                         _stages[uint256(stage(tokenId))],"\"},",
                         "{\"trait_type\": \"number\",\"value\":",
-                        Strings.toString(tvl[tokenId]),"}",
+                        Strings.toString(gotchiValue(tokenId)),"}",
                         "]}"
                       )
                     )
@@ -198,5 +192,21 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
                 )
             )
         );
+    }
+
+     function _beforeTokenTransfer(address from, address to, uint256 tokenId)
+        internal
+        override(ERC721, ERC721Enumerable)
+    {
+        super._beforeTokenTransfer(from, to, tokenId);
+    }
+
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(ERC721, ERC721Enumerable)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
     }
 }
