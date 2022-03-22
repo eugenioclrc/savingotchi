@@ -24,7 +24,9 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
 
     Counters.Counter private _tokenIdCounter;
 
-    constructor() SavingotchiState() SavingotchiVaultManager (/* _vault*/) ERC721("Savingotchi", "GMI") {
+    constructor() SavingotchiState() SavingotchiVaultManager (0xee9eE614Ad26963bEc1Bec0D2c92879ae1F209fA,
+   0x178113104fEcbcD7fF8669a0150721e231F0FD4B
+  , 0xF45444171435d0aCB08a8af493837eF18e86EE27) ERC721("Savingotchi", "SAVE") {
     }
 
     function setEvolver(address evolver_) onlyOwner external {
@@ -63,7 +65,7 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         savingotchiType[tokenId] = SavingotchiType.EGG;
         gen[tokenId] = uint256(blockhash(block.number - 1));
   
-        createVault(tokenId);
+        createVault(tokenId, msg.value);
         
         // if (msg.value > price) {
         //     Address.sendValue(payable(msg.sender), msg.value - price);
@@ -74,8 +76,7 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         require(ownerOf(tokenId) == msg.sender, "Only owner can release a Savingotchi");
         super._burn(tokenId);
         
-        tokenVaults[tokenId].earlyexit(msg.sender);
-        delete tokenVaults[tokenId];
+        vaultAddress(tokenId).earlyexit(msg.sender);
         delete lastEvolve[tokenId];
         delete gen[tokenId];
         delete savingotchiType[tokenId];
@@ -86,8 +87,7 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
         require(stage(tokenId) == SavingotchiStage.ADULT, "Only adult Savingotchi can be released");
         super._burn(tokenId);
         
-        tokenVaults[tokenId].exit(msg.sender);
-        delete tokenVaults[tokenId];
+        vaultAddress(tokenId).exit(msg.sender);
         delete lastEvolve[tokenId];
         delete gen[tokenId];
         delete savingotchiType[tokenId];
@@ -104,7 +104,7 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
             require(msg.value >= _evolvePrice, "Not enought matic");
             // comprar link para tirar el random
             _evolve(tokenId);
-            tokenVaults[tokenId].depositAAVE{value: msg.value}();
+            vaultAddress(tokenId).depositAAVE{value: msg.value}();
 
             if (msg.value > _evolvePrice) {
                 Address.sendValue(payable(msg.sender), msg.value - _evolvePrice);

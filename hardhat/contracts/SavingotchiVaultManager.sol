@@ -1,33 +1,51 @@
 pragma solidity ^0.8.4;
 
 import "./AAVEVault.sol";
+import "@openzeppelin/contracts/utils/Create2.sol";
 
 contract SavingotchiVaultManager {
-  mapping(uint256 => Vault) public tokenVaults;
-  
-  IAToken aMATIC = IAToken(0xF45444171435d0aCB08a8af493837eF18e86EE27);
-
-  // address public vault;
-
-  constructor(/* address _vault */) public {
-    // vault = _vault;
-  }
-   // _WETHGateway 0xee9eE614Ad26963bEc1Bec0D2c92879ae1F209fA
+  // _WETHGateway 0xee9eE614Ad26963bEc1Bec0D2c92879ae1F209fA
   // lendingPool 0x178113104fEcbcD7fF8669a0150721e231F0FD4B
   // aMATIC 0xF45444171435d0aCB08a8af493837eF18e86EE27
-  function createVault(uint256 tokenId) internal {
-    tokenVaults[tokenId] = new Vault(
-      address(0xee9eE614Ad26963bEc1Bec0D2c92879ae1F209fA),
-      address(0x178113104fEcbcD7fF8669a0150721e231F0FD4B),
-      address(aMATIC)
+
+  address internal immutable wETHGateway;
+  address internal immutable lendingPoolAddressesProviderAddress;
+  IAToken internal immutable aMATIC;
+
+  bytes private VaultCreatioCode;
+  bytes32 private immutable VaultBytecodeHash;
+
+  constructor(
+    address _wETHGateway,
+    address _lendingPoolAddressesProviderAddress,
+    address _aMATIC
+  ) {
+    VaultCreatioCode = abi.encodePacked(
+      type(Vault).creationCode,
+      bytes32(uint256(uint160(_wETHGateway))),
+      bytes32(uint256(uint160(_lendingPoolAddressesProviderAddress))),
+      bytes32(uint256(uint160(_aMATIC)))
     );
-    
-    tokenVaults[tokenId].depositAAVE{value: msg.value}();
+    VaultBytecodeHash = keccak256(VaultCreatioCode);
+
+    wETHGateway = _wETHGateway;
+    lendingPoolAddressesProviderAddress = _lendingPoolAddressesProviderAddress;
+    aMATIC = IAToken(_aMATIC);
   }
 
-  function gotchiValue(uint256 tokenId) public view returns (uint256) {
-    return tokenVaults[tokenId].aMATICbalance();
+  function createVault(uint256 _tokenId, uint256 _price) internal {
+    Create2.deploy(_price, bytes32(_tokenId), VaultCreatioCode);
+
+    if (msg.value > _price) {
+      Address.sendValue(payable(msg.sender), msg.value - _price);
+    }
   }
 
-  
+  function vaultAddress(uint256 _tokenId) public view returns (Vault) {
+    return Vault(payable(Create2.computeAddress(bytes32(_tokenId), VaultBytecodeHash)));
+  }
+
+  function gotchiValue(uint256 _tokenId) public view returns (uint256) {
+    return vaultAddress(_tokenId).aMATICbalance();
+  }
 }
