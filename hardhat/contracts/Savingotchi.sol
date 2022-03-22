@@ -17,7 +17,7 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
 
     uint256 public totalSupply;
     uint256 public lastBuy;
-    uint256 public constant BASE_PRICE = 1 ether;
+    uint256 public constant BASE_PRICE = 0.01 ether; // TODO FOR TEST, remove
     uint256 private _baseIncreasePrice = 0;
 
     Counters.Counter private _tokenIdCounter;
@@ -109,7 +109,7 @@ contract Savingotchi is SavingotchiState, SavingotchiVaultManager, ERC721, ERC72
 
     function evolvePrice(uint256 tokenId) public view returns(uint256) {
         require(stage(tokenId) != SavingotchiStage.ADULT, "Cannot evolve an adult Savingotchi");
-        require(block.timestamp >= (lastEvolve[tokenId] + 7 days), "Can't evolve yet");
+        //require(block.timestamp >= (lastEvolve[tokenId] + 7 days), "Can't evolve yet"); // TODO FOR TESTTEST, remove
 
         if (block.timestamp >= (lastEvolve[tokenId] + 14 days)) { // free evolve
             return 0;

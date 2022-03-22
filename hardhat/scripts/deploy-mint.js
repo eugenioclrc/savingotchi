@@ -19,6 +19,8 @@ async function main() {
   provider = new ethers.providers.JsonRpcProvider(NODE);
   const owner = (new ethers.Wallet(PK)).connect(provider);
 
+  console.log("Owner address:", owner.address);
+
   // Deploy
   const SavingotchiArt = require("../artifacts/contracts/Savingotchi.sol/Savingotchi.json");
   const Savingotchi = new ethers.ContractFactory(
@@ -36,30 +38,45 @@ async function main() {
     fee
   );
   await sav.deployed();
+
+  //const SavingotchiAddress = "0xdda9a14eD57fc9542DF3a6464F71B86c81A997f7";
+  //const sav = new ethers.Contract(
+  //  SavingotchiAddress,
+  //  SavingotchiArt.abi,
+  //  owner
+  //);
+
   console.log("Deploy savingotchi at", sav.address);
 
+  // send LINK
   const LINK = new ethers.Contract(
     LINKAddress,
     require("../artifacts/contracts/__mocks__/TestToken.sol/TestToken.json").abi,
     owner
   );
   await LINK.transfer(sav.address, ethers.utils.parseEther("1"));
+  console.log("Sent LINK to sav");
 
   // Mint
-
   const id = await sav.totalSupply();
   const buyPrice = await sav.getBuyPrice();
+  console.log(buyPrice);
   await sav.mint({ value: buyPrice });
   console.log("mint:", id.toString(), ", Type:", await sav.savingotchiType(id));
 
-  // Send to evolve
+  await sleep(15000);
 
-  await increaseTime(7 * 24 * 60 * 60);
+  // Send to evolve
+  //await increaseTime(7 * 24 * 60 * 60);
 
   const evolvePrice = await sav.evolvePrice(id);
   console.log(evolvePrice.toString());
+
+  // hay que mandarle de mas por los segundos que tarda en minarse la tx
   await sav.sendToEvolve(id, { value: evolvePrice.mul(bn(2)) });
   console.log("sendToEvolve:", id.toString(), ", Type:", await sav.savingotchiType(id));
+
+  await sleep(15000);
 
   let rndOnProcess = await sav.rndOnProcess(id);
   // Wait the evolve
