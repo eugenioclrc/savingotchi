@@ -15,6 +15,8 @@ contract Vault is Ownable {
   IAToken aMATIC;
   IWMATIC wMATIC;
 
+  address constant DEV = 0xC0600976d468F654a91dDD8D861C6f74925D88F2;
+
   // mumbai
   // _WETHGateway 0xee9eE614Ad26963bEc1Bec0D2c92879ae1F209fA
   // lendingPool 0x178113104fEcbcD7fF8669a0150721e231F0FD4B
@@ -54,7 +56,33 @@ contract Vault is Ownable {
   }
   */
 
-  function exit() public onlyOwner {
+  function earlyexit(address _account) public onlyOwner {
+    uint256 _amount = aMATIC.balanceOf(address(this));
+    IAToken(aMATIC).approve(address(WETHGateway), _amount);
+    
+    // 0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889 WMATIC address
+    ILendingPool(seeLendingPool()).withdraw(
+        address(wMATIC),
+        _amount,
+        address(this)
+      );
+
+    wMATIC.withdraw(_amount);
+    // 10percent fee to admin
+    Address.sendValue(payable(DEV), _amount * 100 / 10);
+    
+    // aave incentives = 0xd41ae58e803edf4304334acce4dc4ec34a63c644
+    // 0xd41ae58e803edf4304334acce4dc4ec34a63c644
+    // IIncentivesController(incentivesController).claimRewards(assets, type(uint).max, address(this));
+
+    // TODO selfdestruct y claim withdraws
+    // see https://github.com/beefyfinance/beefy-contracts/blob/master/contracts/archive/strategies/Aave/StrategyAaveMatic.sol
+
+    selfdestruct(payable(_account));
+  }
+
+
+  function exit(address _account) public onlyOwner {
     uint256 _amount = aMATIC.balanceOf(address(this));
     IAToken(aMATIC).approve(address(WETHGateway), _amount);
     
@@ -75,7 +103,7 @@ contract Vault is Ownable {
     // TODO selfdestruct y claim withdraws
     // see https://github.com/beefyfinance/beefy-contracts/blob/master/contracts/archive/strategies/Aave/StrategyAaveMatic.sol
 
-    selfdestruct(payable(owner()));
+    selfdestruct(payable(_account));
   }
 
   function withdrawAAVE(address _user, uint _amount) public onlyOwner {
