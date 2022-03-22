@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import logo from './svelte-logo.svg';
+
+	import { login, wallet, balance, gotchiFloor, } from '$lib/eth.js';
+
 </script>
 
 <header>
@@ -14,9 +16,16 @@
 		</svg>
 		<ul>
 			<li class:active={$page.url.pathname === '/'}><a sveltekit:prefetch href="/">Home</a></li>
-			<li class:active={$page.url.pathname === '/wallet'}>
-				<a sveltekit:prefetch href="/wallet">My Savingotchis</a>
-			</li>
+			{#if $wallet}
+				<li class:active={$page.url.pathname === '/wallet'}>
+					<a href="/wallet">My Savingotchis ({$balance})</a>
+				</li>
+			{:else}
+				<li on:click={login}>
+					<a href>Connect</a>
+				</li>
+			{/if}
+			
 		</ul>
 		<svg viewBox="0 0 2 3" aria-hidden="true">
 			<path d="M0,0 L0,3 C0.5,3 0.5,3 1,2 L2,0 Z" />
