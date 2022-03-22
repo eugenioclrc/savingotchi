@@ -127,7 +127,7 @@
 			</p>	
 		</div>
 		<div class="card_footer" style="background-color: #55143e">
-			<a class="button" style="background-color: #ca5824;" href="https://testnets.opensea.io/assets/0x0759416B0A5D4069f0BCD92e47499E3EF604bfB7/{String(e.id)}">Opensea</a>
+			<a class="button" style="background-color: #ca5824;" href="https://testnets.opensea.io/assets/mumbai/0x660c6d095f6d786224d4609d279145038ae78f39/{String(e.id)}">Opensea</a>
 			
 		</div>
 	</div>
