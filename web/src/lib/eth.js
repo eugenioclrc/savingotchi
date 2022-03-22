@@ -18,7 +18,7 @@ const CHAIN_ID = 80001; // 31337
 // const CHAIN_ID = 31337;
 const HEXCHAIN_ID = "0x"+CHAIN_ID.toString(16);
 
-const savingotchiAddress = "0x0759416B0A5D4069f0BCD92e47499E3EF604bfB7";
+const savingotchiAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
 let savingotchi;
 
 export const contract = writable(null);
