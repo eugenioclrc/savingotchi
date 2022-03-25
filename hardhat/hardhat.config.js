@@ -1,6 +1,7 @@
 require("dotenv").config();
+require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-waffle");
-require('hardhat-contract-sizer');
+require("hardhat-contract-sizer");
 
 // npx hardhart node --fork https://speedy-nodes-nyc.moralis.io/APIKEY/polygon/mumbai
 
@@ -22,22 +23,31 @@ task("accounts", "Prints the list of accounts", async () => {
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
-  networks: {
-    localhost: {
-      accounts: process.env.MUMBAI_KEY ? [process.env.MUMBAI_KEY] : undefined
-  },
-},
-solidity: {
-  compilers: [
-  {
-    version: "0.8.4",
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 200,
-      },
+    networks: {
+      localhost: {
+        accounts: process.env.MUMBAI_KEY ? [process.env.MUMBAI_KEY] : undefined
     },
+  },
+  solidity: {
+    compilers: [
+      {
+        version: "0.8.4",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+      {
+        version: "0.6.6",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      }
+    ]
   }
-  ]}
 };
-
