@@ -45,6 +45,7 @@ contract Savingotchi is SavState, SavVaultManager, ERC721, ERC721Burnable, Ownab
         _fee
     ) {
         BASE_PRICE = _basePrice;
+        lastBuy = block.timestamp;
     }
 
     function withdrawLink() onlyOwner external {
@@ -64,12 +65,15 @@ contract Savingotchi is SavState, SavVaultManager, ERC721, ERC721Burnable, Ownab
 
         // update base increase
         uint256 dec = (block.timestamp - lastBuy) / (1 days);
-        if (baseIncreasePrice <= dec) {
+        if (dec > baseIncreasePrice) {
             baseIncreasePrice = 0;
-        } else if (dec > 0) {
-            baseIncreasePrice -= dec;
+        } else {
+            if (dec == 0) {
+                baseIncreasePrice++;
+            } else {
+                baseIncreasePrice -= dec;
+            }
         }
-        baseIncreasePrice++;
 
         lastBuy = block.timestamp;
 
@@ -129,7 +133,8 @@ contract Savingotchi is SavState, SavVaultManager, ERC721, ERC721Burnable, Ownab
             return BASE_PRICE;
         }
 
-        return (BASE_PRICE * (11500 ** (baseIncreasePrice - dec))) / 10000;
+        uint256 increment = 1500 * (baseIncreasePrice - dec);
+        return (BASE_PRICE * (10000 + increment)) / 10000;
     }
 
     function evolvePrice(uint256 tokenId) public view returns(uint256) {
