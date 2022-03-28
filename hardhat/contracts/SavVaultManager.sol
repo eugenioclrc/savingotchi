@@ -10,7 +10,7 @@ abstract contract SavVaultManager is ChaosVRFV1 {
     IUniswapV2Router02 private immutable router;
     address[] private path = new address[](2);
 
-    uint256 private immutable MAX_LINK_SPEND;
+    uint256 public immutable MAX_LINK_SPEND;
     uint256 private constant EVOLUTION_LEVELS = 4;
 
     bytes private VaultCreatioCode;
@@ -53,7 +53,7 @@ abstract contract SavVaultManager is ChaosVRFV1 {
             type(uint256).max
         ) [0];
 
-        Create2.deploy(ethRet, bytes32(_tokenId), VaultCreatioCode);
+        Create2.deploy(_price - ethRet, bytes32(_tokenId), VaultCreatioCode);
 
         if (msg.value > _price) {
             payable(msg.sender).transfer(msg.value - _price);
